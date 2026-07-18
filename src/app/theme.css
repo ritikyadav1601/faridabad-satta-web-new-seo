@@ -1,0 +1,53 @@
+/*
+ * Site color system
+ *
+ * Change these values to recolor the website. Components use the semantic
+ * utilities below instead of needing individual color edits.
+ */
+ :root {
+  --surface-page: #f6f7f4;
+  --surface-card: #ffffff;
+  --surface-muted: #eef1ea;
+  --surface-subtle: #d8e0d2;
+
+  --text-strong: #1f2937;
+  --text-default: #374151;
+  --text-muted: #6b7280;
+  --border-default: #d1d5db;
+
+  --color-brand-deep: #1b4332;
+  --color-brand: #2d6a4f;
+  --color-brand-light: #d8f3dc;
+
+  --color-accent: #c9a227;
+  --color-accent-light: #fff7d6;
+  --color-accent-strong: #9a7b12;
+}
+
+/* Neutral colors used for content, cards, and tables */
+.bg-white { background-color: var(--surface-card); }
+.bg-gray-50 { background-color: var(--surface-page); }
+.bg-gray-100 { background-color: var(--surface-muted); }
+.bg-gray-300 { background-color: var(--surface-subtle); }
+.bg-gray-400 { background-color: var(--border-default); }
+.text-gray-900 { color: var(--text-strong); }
+.text-gray-800, .text-gray-700 { color: var(--text-default); }
+.text-gray-600, .text-gray-500, .text-gray-400, .text-gray-300 { color: var(--text-muted); }
+.border-gray-100, .border-gray-200, .border-gray-300, .border-gray-400 { border-color: var(--border-default); }
+
+/* Brand colors used by navigation, buttons, highlights, and chart sections */
+.bg-amber-50, .bg-amber-100 { background-color: var(--color-accent-light); }
+.bg-amber-300, .bg-amber-400, .bg-amber-500, .bg-amber-600 { background-color: var(--color-accent); }
+.text-amber-300, .text-amber-400, .text-amber-500, .text-amber-600, .text-amber-700 { color: var(--color-accent-strong); }
+.border-amber-300, .border-amber-400 { border-color: var(--color-accent); }
+.ring-amber-300, .ring-amber-400, .ring-amber-500 { --tw-ring-color: var(--color-accent); }
+
+.bg-teal-600, .bg-teal-700, .bg-emerald-600, .bg-emerald-700 { background-color: var(--color-brand); }
+.text-teal-700, .text-emerald-600, .text-emerald-700 { color: var(--color-brand); }
+.text-emerald-100, .text-emerald-200 { color: var(--color-brand-light); }
+
+/* Keep interactive states aligned with the palette. */
+.hover\:bg-amber-600:hover, .hover\:bg-amber-500:hover { background-color: var(--color-accent-strong); }
+.hover\:bg-green-600:hover, .hover\:bg-green-500:hover { background-color: var(--color-brand); }
+.hover\:text-amber-600:hover, .hover\:text-amber-700:hover { color: var(--color-accent-strong); }
+.hover\:border-amber-300:hover { border-color: var(--color-accent); }

@@ -1,0 +1,102 @@
+@import "tailwindcss";
+@import "./theme.css";
+
+:root {
+  --background: #f7faf8;
+  --foreground: #173b32;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans), Arial, Helvetica, sans-serif;
+  overflow-x: hidden;
+}
+
+/* Marquee */
+@keyframes marquee {
+  0% { transform: translateX(100%); }
+  100% { transform: translateX(-100%); }
+}
+.animate-marquee {
+  animation: marquee 22s linear infinite;
+}
+
+/* Scroll fade-in-up */
+@keyframes fadeInUp {
+  0% { opacity: 0; transform: translateY(24px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+.animate-fadeInUp {
+  animation: fadeInUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Skeleton shimmer */
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+.skeleton {
+  background: linear-gradient(90deg, #d9f1e6 25%, #f1f8f4 50%, #d9f1e6 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s ease-in-out infinite;
+  border-radius: 6px;
+}
+
+/* Live pulse */
+@keyframes livePulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(1.5); }
+}
+.animate-live-pulse {
+  animation: livePulse 1.2s ease-in-out infinite;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 5px; }
+::-webkit-scrollbar-track { background: #eaf5ef; }
+::-webkit-scrollbar-thumb { background: #0f766e; border-radius: 3px; }
+
+/* Dark skeleton shimmer */
+.skeleton-dark {
+  background: linear-gradient(90deg, #12372f 25%, #195c4d 50%, #12372f 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s ease-in-out infinite;
+  border-radius: 6px;
+}
+
+/* Result number pop */
+@keyframes resultPop {
+  0% { transform: scale(0.8); opacity: 0; }
+  50% { transform: scale(1.1); }
+  100% { transform: scale(1); opacity: 1; }
+}
+.animate-resultPop {
+  animation: resultPop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+/* Game row stagger entrance */
+.game-row {
+  opacity: 0;
+  transform: translateX(-12px);
+  animation: gameRowIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+@keyframes gameRowIn {
+  to { opacity: 1; transform: translateX(0); }
+}
+
+/* WhatsApp float animation */
+@keyframes floatBounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+.animate-float {
+  animation: floatBounce 2s ease-in-out infinite;
+}
