@@ -6,13 +6,13 @@ const nextConfig: NextConfig = {
       {
         source: "/:path*",
         has: [{ type: "host", value: "a7satta.co" }],
-        destination: "https://www.sattaonlineresult.com/:path*",
+        destination: "https://faridabadsatta.com/:path*",
         permanent: true,
       },
       {
         source: "/:path*",
         has: [{ type: "host", value: "www.a7satta.co" }],
-        destination: "https://www.sattaonlineresult.com/:path*",
+        destination: "https://faridabadsatta.com/:path*",
         permanent: true,
       },
     ];

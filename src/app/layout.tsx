@@ -21,17 +21,16 @@ export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
     default:
-      "Satta Online Result | Live A7 Satta Result 2026 | Gali Desawar Faridabad Ghaziabad",
+      "Faridabad Satta Result | Live Results, Charts & Old Records",
     template: `%s | ${SITE_NAME}`,
   },
   description:
-    "SattaOnlineResult.com - Get superfast live A7 Satta results for Gali, Desawar, Ghaziabad, Faridabad, Shri Ganesh, Delhi Bazar & 100+ games. Monthly chart records. Updated daily.",
+    "Check Faridabad Satta results, daily charts and historical records for Faridabad, Gali, Desawar, Ghaziabad, Delhi Bazar and more markets. Updated regularly.",
   verification: {
     google: "iwfZBGPCqdL74ht1H9V0bVgdfHVKvW-qXETMj6c7_Uk",
   },
 
   keywords: [
-    "a7 satta",
     "satta king result",
     "satta king",
     "satta result",
@@ -41,19 +40,47 @@ export const metadata: Metadata = {
     "satta king live",
     "live satta result",
     "satta online result",
-    "a7satta",
+    "faridabad satta",
+    "faridabad satta result",
+    "faridabad satta chart",
   ],
   openGraph: {
     type: "website",
     locale: "en_IN",
     url: SITE_URL,
     siteName: SITE_NAME,
-    title: "Satta Online Result | Live A7 Satta Result 2026",
+    title: "Faridabad Satta Result | Live Results, Charts & Old Records",
     description:
-      "Superfast live A7 Satta results for Gali, Desawar, Ghaziabad, Faridabad & 100+ games.",
+      "Live Faridabad Satta results, charts and old records for Faridabad, Gali, Desawar, Ghaziabad and more markets.",
+  },
+  twitter: {
+    card: "summary",
+    title: "Faridabad Satta Result | Live Results, Charts & Old Records",
+    description:
+      "Live Faridabad Satta results, charts and old records for Faridabad and more markets.",
   },
   robots: { index: true, follow: true },
   alternates: { canonical: SITE_URL },
+};
+
+const structuredData = {
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Organization",
+      "@id": `${SITE_URL}/#organization`,
+      name: SITE_NAME,
+      url: SITE_URL,
+    },
+    {
+      "@type": "WebSite",
+      "@id": `${SITE_URL}/#website`,
+      name: SITE_NAME,
+      url: SITE_URL,
+      inLanguage: ["en-IN", "hi-IN"],
+      publisher: { "@id": `${SITE_URL}/#organization` },
+    },
+  ],
 };
 
 export default function RootLayout({
@@ -67,10 +94,14 @@ export default function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
+        />
         <LanguageProvider>
           <Header />
           <main className="flex-1">{children}</main>
-          {/* <Footer /> */}
+          <Footer />
           <WhatsAppButton />
         </LanguageProvider>
       </body>

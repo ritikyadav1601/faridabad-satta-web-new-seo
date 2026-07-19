@@ -195,8 +195,8 @@ export default function HomeClient({ initialData }: { initialData: HomeData }) {
         </h1>
         <p className="text-emerald-100/80 text-sm md:text-base max-w-2xl mx-auto">
           {t(
-            "सबसे तेज़ A7 सट्टा रिजल्ट अपडेट। गली, देसावर, गाज़ियाबाद, फरीदाबाद और 100+ गेम्स।",
-            "Fastest A7 Satta result updates. Gali, Desawar, Ghaziabad, Faridabad & 100+ games.",
+            "लाइव सट्टा रिजल्ट अपडेट। गली, देसावर, गाज़ियाबाद, फरीदाबाद और अन्य गेम्स।",
+            "Live Satta result updates for Gali, Desawar, Ghaziabad, Faridabad and more games.",
             lang
           )}
         </p>
@@ -211,8 +211,8 @@ export default function HomeClient({ initialData }: { initialData: HomeData }) {
         <p className="text-center text-[11px] md:text-xs text-gray-500 max-w-4xl mx-auto">
           <span className="font-bold text-red-500">{t("अस्वीकरण", "DISCLAIMER", lang)}:</span>{" "}
           {t(
-            "SattaOnlineResult.com एक स्वतंत्र सूचनात्मक वेबसाइट है। हम जुआ या सट्टेबाजी को बढ़ावा नहीं देते।",
-            "SattaOnlineResult.com is an independent informational website. We do not promote gambling or betting.",
+            "FaridabadSatta.com एक स्वतंत्र सूचनात्मक वेबसाइट है। हम जुआ या सट्टेबाजी को बढ़ावा नहीं देते।",
+            "FaridabadSatta.com is an independent informational website. We do not promote gambling or betting.",
             lang
           )}{" "}
           <Link href="/disclaimer" className="text-blue-600 hover:underline font-medium">
@@ -319,10 +319,10 @@ export default function HomeClient({ initialData }: { initialData: HomeData }) {
           <p>
             {t(
               <>
-                <strong className="text-gray-900">SattaOnlineResult.com</strong> में आपका स्वागत है - लाइव <strong className="text-gray-900">A7 सट्टा रिजल्ट</strong> ट्रैक करने का सबसे अच्छा प्लेटफॉर्म। हमारा सिस्टम रिजल्ट घोषित होते ही तुरंत अपडेट करता है।
+                <strong className="text-gray-900">FaridabadSatta.com</strong> में आपका स्वागत है - लाइव <strong className="text-gray-900">सट्टा रिजल्ट</strong> और चार्ट देखने का आसान प्लेटफॉर्म। हमारा सिस्टम परिणाम उपलब्ध होते ही अपडेट करता है।
               </> as unknown as string,
               <>
-                Welcome to <strong className="text-gray-900">SattaOnlineResult.com</strong> - the ultimate platform for tracking live <strong className="text-gray-900">A7 Satta results</strong>. Our infrastructure delivers results the exact moment they are declared.
+                Welcome to <strong className="text-gray-900">FaridabadSatta.com</strong> — a simple place to check live <strong className="text-gray-900">Satta results</strong> and charts. Results are updated as they become available.
               </> as unknown as string,
               lang
             )}
@@ -342,7 +342,7 @@ export default function HomeClient({ initialData }: { initialData: HomeData }) {
             {t("अपना गेम यहाँ एडवरटाइज़ करें", "ADVERTISE YOUR GAME HERE", lang)}
           </p>
           <p className="text-sm text-gray-400 mt-1">
-            {t("SattaOnlineResult.com पर अपने गेम को फीचर करने के लिए संपर्क करें", "Contact us to feature your game on SattaOnlineResult.com", lang)}
+            {t("FaridabadSatta.com पर अपने गेम को फीचर करने के लिए संपर्क करें", "Contact us to feature your game on FaridabadSatta.com", lang)}
           </p>
         </div>
 
@@ -559,7 +559,7 @@ function SK24ChartsSection({ tables, lang }: { tables: SK24ChartTable[]; lang: "
             {t("मंथली चार्ट", "Monthly Charts", lang)}
           </h2>
           <p className="text-xs text-gray-400">
-            {t("A7 सट्टा चार्ट रिकॉर्ड", "A7 Satta chart records", lang)}
+            {t("सट्टा चार्ट रिकॉर्ड", "Satta chart records", lang)}
           </p>
         </div>
       </div>
@@ -609,22 +609,22 @@ function SK24ChartsSection({ tables, lang }: { tables: SK24ChartTable[]; lang: "
 
 
 function WhatsAppContactSection({ lang, khaiwal }: any) {
-  const phone =  "918708328760";
-  const name =  "Arun bhai Khaiwal";
+  const phone =  "917355847700";
+  const name =  "Har Har Mahadev";
 
   const games = [
-    { name: t("सदर बाजार", "Sadar Bazar", lang), time: "1:20 PM" },
-    { name: t("ग्वालियर", "Gwalior", lang), time: "2:20 PM" },
-    { name: t("दिल्ली बाजार", "Delhi Bazar", lang), time: "3:00 PM" },
-    { name: t("दिल्ली मटका", "Delhi Matka", lang), time: "3:20 PM" },
+    { name: t("शिव गंगा", "Shiv Ganga", lang), time: "12:15 PM" },
+    { name: t("सबर बाजार", "Sabar Bazar", lang), time: "1:15 PM" },
+    { name: t("अलीनगर", "Alinagar", lang), time: "2:15 PM" },
+    { name: t("दिल्ली बाज़ार", "Delhi Bazar", lang), time: "2:50 PM" },
     { name: t("श्री गणेश", "Shri Ganesh", lang), time: "4:20 PM" },
-    { name: t("आगरा", "Agra", lang), time: "5:20 PM" },
-    { name: t("फरीदाबाद", "Faridabad", lang), time: "5:50 PM" },
-    { name: t("अलवर", "Alwar", lang), time: "7:20 PM" },
-    { name: t("गाज़ियाबाद", "Ghaziabad", lang), time: "8:50 PM" },
-    { name: t("द्वारका", "Dwarka", lang), time: "10:15 PM" },
+    { name: t("फतेहाबाद सिटी", "Fatehabad City", lang), time: "5:20 PM" },
+    { name: t("फरीदाबाद", "Faridabad", lang), time: "5:30 PM" },
+    { name: t("मुल्तान बाज़ार", "Multan Bazar", lang), time: "7:20 PM" },
+    { name: t("गाज़ियाबाद", "Ghaziabad", lang), time: "8:40 PM" },
+    { name: t("कल्याणपुरी", "Kalyanpuri", lang), time: "10:10 PM" },
     { name: t("गली", "Gali", lang), time: "11:20 PM" },
-    { name: t("दिसावर", "Disawar", lang), time: "2:00 AM" },
+    { name: t("दिसावर", "Disawar", lang), time: "1:30 AM" },
   ];
 
   return (
@@ -700,7 +700,7 @@ function WhatsAppContactSection({ lang, khaiwal }: any) {
         {/* Phone */}
         <div className="text-center px-4">
           <a
-            href={`tel:+918708328760`}
+            href={`tel:+917355847700`}
             className="inline-block text-3xl md:text-4xl font-black text-blue-700 border-b-4 border-blue-700"
           >
             +{phone}
@@ -710,7 +710,7 @@ function WhatsAppContactSection({ lang, khaiwal }: any) {
         {/* Footer Text */}
         <div className="text-center px-4 pt-5">
           <p className="font-black text-xl md:text-2xl text-[#1a1a2e]">
-            😊😊Arun Bhai Khaiwal 😊😊
+            😊😊Har Har Mahadev 😊😊
           </p>
 
           <p className="mt-2 text-sm md:text-base font-bold text-gray-700">
@@ -721,7 +721,7 @@ function WhatsAppContactSection({ lang, khaiwal }: any) {
         {/* WhatsApp Button */}
         <div className="px-4 pb-8 pt-5 flex justify-center">
           <a
-           href={`https://wa.me/+918708328760?text=${encodeURIComponent("A7 SATTA")}`}
+           href={`https://wa.me/+917355847700?text=${encodeURIComponent("FARIDABAD SATTA")}`}
             target="_blank"
             rel="noopener noreferrer"
             className="flex items-center gap-4 bg-green-500 hover:bg-green-600 text-white px-8 py-4 rounded-full font-black text-lg shadow-lg hover:scale-105 transition-all"
@@ -924,12 +924,12 @@ function SeoContent({ lang }: { lang: "hi" | "en" }) {
   return (
     <div className="sa opacity-0 translate-y-8 bg-gray-50 rounded-2xl border border-gray-200 p-5 md:p-8 space-y-4 text-sm text-gray-600 leading-relaxed">
       <h2 className="text-xl md:text-2xl font-black text-gray-900">
-        {t("A7 सट्टा और SattaOnlineResult.com के बारे में", "Understanding A7 Satta & SattaOnlineResult.com", lang)}
+        {t("Faridabad Satta के बारे में", "About Faridabad Satta", lang)}
       </h2>
       <p>
         {t(
-          "SattaOnlineResult.com इंटरनेट पर सबसे तेज़ और सबसे भरोसेमंद A7 सट्टा रिजल्ट प्रदान करने के लिए बनाया गया है। हमारा प्लेटफॉर्म आधिकारिक स्रोतों से सीधे डेटा लेता है और रियल-टाइम में अपडेट करता है।",
-          "SattaOnlineResult.com is designed to provide the fastest, most reliable A7 Satta results on the internet. Our platform pulls data directly from official sources and updates in real-time.",
+          "FaridabadSatta.com परिणाम और पुराने चार्ट रिकॉर्ड को एक ही स्थान पर देखने के लिए बनाया गया है। डेटा उपलब्ध होते ही प्लेटफॉर्म अपडेट किया जाता है।",
+          "FaridabadSatta.com is built to make results and historical chart records easy to find in one place. The platform is updated as data becomes available.",
           lang
         )}
       </p>
@@ -942,7 +942,7 @@ function SeoContent({ lang }: { lang: "hi" | "en" }) {
       </p>
 
       <h3 className="text-lg font-bold text-gray-900">
-        {t("SattaOnlineResult.com क्यों चुनें?", "Why Choose SattaOnlineResult.com?", lang)}
+        {t("FaridabadSatta.com क्यों चुनें?", "Why Choose FaridabadSatta.com?", lang)}
       </h3>
       <ul className="list-none space-y-2 pl-0">
         <li className="flex items-start gap-2">
@@ -979,8 +979,8 @@ function SeoContent({ lang }: { lang: "hi" | "en" }) {
       <div className="bg-red-50 border border-red-200 rounded-xl p-4 text-xs text-red-700">
         <strong>{t("महत्वपूर्ण:", "Important:", lang)}</strong>{" "}
         {t(
-          "SattaOnlineResult.com पूरी तरह से सूचनात्मक उद्देश्यों के लिए है। हम किसी भी जुआ संचालन का स्वामित्व, संचालन या सुविधा नहीं देते। कृपया अपने क्षेत्रीय कानूनों का पालन करें।",
-          "SattaOnlineResult.com is strictly for informational purposes. We do not own, operate, or facilitate any gambling operations. Please comply with your regional laws.",
+          "FaridabadSatta.com पूरी तरह से सूचनात्मक उद्देश्यों के लिए है। हम किसी भी जुआ संचालन का स्वामित्व, संचालन या सुविधा नहीं देते। कृपया अपने क्षेत्रीय कानूनों का पालन करें।",
+          "FaridabadSatta.com is strictly for informational purposes. We do not own, operate, or facilitate any gambling operations. Please comply with your regional laws.",
           lang
         )}
       </div>

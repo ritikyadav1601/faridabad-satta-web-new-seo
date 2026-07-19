@@ -15,13 +15,13 @@ export default function ContactPage() {
           {t("संपर्क करें", "Contact Us", lang)}
         </h1>
         <p className="text-gray-500 text-sm mb-8">
-          {t("SattaOnlineResult.com टीम से संपर्क करें", "Get in touch with SattaOnlineResult.com team", lang)}
+          {t("FaridabadSatta.com टीम से संपर्क करें", "Get in touch with the FaridabadSatta.com team", lang)}
         </p>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
           {/* WhatsApp Card */}
           <a
-            href={`https://wa.me/${phone}?text=${encodeURIComponent("A7 SATTA")}`}
+            href={`https://wa.me/${phone}?text=${encodeURIComponent("Faridabad Satta")}`}
             target="_blank"
             rel="noopener noreferrer"
             className="bg-gray-50 rounded-2xl border border-gray-200 p-5 flex items-start gap-4 hover:shadow-lg hover:border-green-300 transition-all group"
@@ -60,11 +60,11 @@ export default function ContactPage() {
         {/* WhatsApp CTA */}
         <div className="bg-[#1a1a2e] rounded-2xl p-6 md:p-8 text-center">
           <p className="text-white font-bold text-lg mb-1">
-            {t("गेम खेलने के लिए संपर्क करें", "Game play karne ke liye contact kare", lang)}
+            {t("सहायता के लिए संपर्क करें", "Contact us for assistance", lang)}
           </p>
-          <p className="text-amber-400 font-black text-2xl mb-4">A7 SATTA</p>
+          <p className="text-amber-400 font-black text-2xl mb-4">FARIDABAD SATTA</p>
           <a
-            href={`https://wa.me/${phone}?text=${encodeURIComponent("A7 SATTA")}`}
+            href={`https://wa.me/${phone}?text=${encodeURIComponent("Faridabad Satta")}`}
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center gap-3 bg-green-500 hover:bg-green-600 text-white font-black text-lg px-8 py-3.5 rounded-2xl shadow-xl shadow-green-500/25 transition-all hover:scale-105"
@@ -83,8 +83,8 @@ export default function ContactPage() {
         <div className="mt-8 bg-red-50 border border-red-200 rounded-xl p-4 text-xs text-red-700">
           <strong>{t("अस्वीकरण:", "Disclaimer:", lang)}</strong>{" "}
           {t(
-            "SattaOnlineResult.com केवल एक सूचनात्मक वेबसाइट है। हम किसी भी प्रकार के जुए को बढ़ावा नहीं देते। कृपया अपने स्थानीय कानूनों का पालन करें।",
-            "SattaOnlineResult.com is an informational website only. We do not promote or facilitate gambling in any form. Please follow your local laws.",
+            "FaridabadSatta.com केवल एक सूचनात्मक वेबसाइट है। हम किसी भी प्रकार के जुए को बढ़ावा नहीं देते। कृपया अपने स्थानीय कानूनों का पालन करें।",
+            "FaridabadSatta.com is an informational website only. We do not promote or facilitate gambling in any form. Please follow your local laws.",
             lang
           )}
         </div>

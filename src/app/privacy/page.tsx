@@ -1,8 +1,10 @@
 import type { Metadata } from "next";
+import { SITE_URL } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: "Privacy Policy",
-  description: "Privacy Policy for SattaOnlineResult.com",
+  description: "Privacy Policy for FaridabadSatta.com",
+  alternates: { canonical: `${SITE_URL}/privacy` },
 };
 
 export default function PrivacyPage() {
@@ -13,7 +15,7 @@ export default function PrivacyPage() {
 
         <div className="space-y-5 text-sm md:text-base text-gray-600 leading-relaxed">
           <p>
-            At <strong className="text-gray-900">SattaOnlineResult.com</strong>, we are committed to protecting your privacy. This Privacy Policy outlines how we collect, use, and safeguard your information when you visit our website.
+            At <strong className="text-gray-900">FaridabadSatta.com</strong>, we are committed to protecting your privacy. This Privacy Policy outlines how we collect, use, and safeguard your information when you visit our website.
           </p>
 
           <h2 className="text-lg font-bold text-gray-900 pt-2">Information We Collect</h2>

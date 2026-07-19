@@ -7,18 +7,18 @@ export function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
           <div>
             <h3 className="text-white text-lg font-black mb-3">
-              A7<span className="text-amber-300">SATTA</span>
+              FARIDABAD <span className="text-amber-300">SATTA</span>
             </h3>
             <p className="text-sm leading-relaxed">
-              SattaOnlineResult.com is India&apos;s fastest platform for live A7 Satta results.
-              Get instant updates for Gali, Desawar, Ghaziabad, Faridabad &amp; 100+ games.
+              FaridabadSatta.com provides live results, charts and historical records
+              for Faridabad, Gali, Desawar, Ghaziabad and other markets.
             </p>
           </div>
 
           <div>
             <h4 className="text-white font-semibold mb-3">Quick Links</h4>
             <ul className="space-y-2 text-sm">
-              <li><Link href="/" className="hover:text-white transition-colors">Today A7 Satta Results</Link></li>
+              <li><Link href="/" className="hover:text-white transition-colors">Today&apos;s Satta Results</Link></li>
               <li><Link href="/blog" className="hover:text-white transition-colors">Blog</Link></li>
               <li><Link href="/contact" className="hover:text-white transition-colors">Contact Us</Link></li>
               <li><Link href="/about" className="hover:text-white transition-colors">About Us</Link></li>
@@ -38,7 +38,7 @@ export function Footer() {
         </div>
 
         <div className="border-t border-white/10 mt-8 pt-6 text-center text-sm">
-          <p>&copy; {new Date().getFullYear()} SattaOnlineResult.com &mdash; All rights reserved.</p>
+          <p>&copy; {new Date().getFullYear()} FaridabadSatta.com &mdash; All rights reserved.</p>
         </div>
       </div>
     </footer>

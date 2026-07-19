@@ -6,7 +6,7 @@ import { SITE_DISPLAY_DOMAIN, SITE_NAME, SITE_URL } from "@/lib/site";
 export const metadata: Metadata = {
   title: "Satta King Blog — Result, Chart & Record Guides",
   description:
-    "SattaOnlineResult.com ब्लॉग पर Satta King Result, Chart और पुराने रिकॉर्ड से जुड़ी उपयोगी जानकारी, गाइड और टिप्स पढ़ें। डेली रिजल्ट, हिस्टोरिकल चार्ट और यूज़र एक्सपीरियंस की पूरी जानकारी।",
+    "FaridabadSatta.com ब्लॉग पर Satta King Result, Chart और पुराने रिकॉर्ड से जुड़ी उपयोगी जानकारी और गाइड पढ़ें।",
   alternates: { canonical: `${SITE_URL}/blog` },
   openGraph: {
     title: `Satta King Blog — ${SITE_NAME}`,

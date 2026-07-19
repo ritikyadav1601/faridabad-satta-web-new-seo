@@ -210,7 +210,7 @@ export default async function BlogDetailPage({
         {/* Footer CTA */}
         <div className="mt-10 rounded-2xl bg-[#1a1a2e] p-6 text-center">
           <p className="text-white font-bold text-lg mb-1">
-            Live A7 Satta Result देखें
+            Live Faridabad Satta Result देखें
           </p>
           <p className="text-gray-400 text-sm mb-4">
             Gali, Desawar, Ghaziabad, Faridabad &amp; 100+ games के लाइव रिजल्ट और चार्ट।

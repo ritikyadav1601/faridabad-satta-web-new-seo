@@ -105,8 +105,8 @@ export function Header() {
       <div className="bg-amber-400 text-emerald-950 py-1 overflow-hidden w-full">
         <div className="animate-marquee whitespace-nowrap text-[10px] md:text-xs font-bold">
           {lang === "hi"
-            ? "SattaOnlineResult.com में आपका स्वागत है — सुपरफास्ट लाइव A7 सट्टा रिजल्ट • गली, देसावर, गाज़ियाबाद, फरीदाबाद, श्री गणेश, दिल्ली बाजार • 100+ गेम्स • फ्री मंथली चार्ट रिकॉर्ड 2015-2026 • हर मिनट अपडेट"
-            : "Welcome to SattaOnlineResult.com — Superfast Live A7 Satta Results • Gali, Desawar, Ghaziabad, Faridabad, Shri Ganesh, Delhi Bazar • 100+ Games • Free Monthly Chart Records 2015-2026 • Updated Every Minute"}
+            ? "FaridabadSatta.com में आपका स्वागत है — लाइव सट्टा रिजल्ट • गली, देसावर, गाज़ियाबाद, फरीदाबाद, श्री गणेश, दिल्ली बाजार • चार्ट और पुराने रिकॉर्ड • नियमित अपडेट"
+            : "Welcome to FaridabadSatta.com — Live Satta Results • Gali, Desawar, Ghaziabad, Faridabad, Shri Ganesh, Delhi Bazar • Charts & Old Records • Updated Regularly"}
         </div>
       </div>
     </header>
