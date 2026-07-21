@@ -20,6 +20,21 @@ function getDayOfMonth(date: string): string {
   return trimmed.slice(-2);
 }
 
+const MONTH_NAMES = ["january","february","march","april","may","june","july","august","september","october","november","december"];
+const MONTH_LABELS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+
+// How many month-columns to show at once in the table.
+const MONTHS_IN_VIEW = 6;
+
+interface MonthColumn {
+  key: string;       // "2026-5" (year-monthIndex)
+  year: number;
+  monthIndex: number; // 0-11
+  label: string;      // "Jun 2026"
+  rowsByDay: Record<number, string>; // day-of-month -> result
+  loaded: boolean;
+}
+
 export default function GameChartPage({
   params,
 }: {
@@ -28,51 +43,67 @@ export default function GameChartPage({
   const { gameCode } = use(params);
   const gameName = gameCode.replace(/-/g, " ").toUpperCase();
 
-  const [rows, setRows] = useState<ChartRow[]>([]);
   const [loading, setLoading] = useState(true);
-  const [displayMonth, setDisplayMonth] = useState("");
-  const [displayYear, setDisplayYear] = useState("");
   const [resultTime, setResultTime] = useState("");
+  const [columns, setColumns] = useState<MonthColumn[]>([]);
 
   const now = new Date();
-  const [currentDate, setCurrentDate] = useState(new Date(now.getFullYear(), now.getMonth()));
+  // anchorDate = the newest (rightmost) month currently in view.
+  const [anchorDate, setAnchorDate] = useState(new Date(now.getFullYear(), now.getMonth()));
 
   // Custom games use a separate API
   const customGameKeys = ["kohlapur", "manipur", "up-bazar", "palwal-city", "mathura-city"];
   const isCustomGame = customGameKeys.includes(gameCode);
 
-  const fetchChart = async (date: Date) => {
-    setLoading(true);
-    const monthNames = ["january","february","march","april","may","june","july","august","september","october","november","december"];
-    const m = monthNames[date.getMonth()];
-    const y = String(date.getFullYear());
+  // Build the list of months (oldest -> newest) ending at `anchor`.
+  const getMonthsWindow = (anchor: Date, count: number): Date[] => {
+    const list: Date[] = [];
+    for (let i = count - 1; i >= 0; i--) {
+      list.push(new Date(anchor.getFullYear(), anchor.getMonth() - i, 1));
+    }
+    return list;
+  };
+
+  const fetchMonth = async (date: Date): Promise<MonthColumn> => {
+    const m = MONTH_NAMES[date.getMonth()];
+    const y = date.getFullYear();
+    const key = `${y}-${date.getMonth()}`;
+    const label = `${MONTH_LABELS[date.getMonth()]} ${y}`;
 
     try {
-      let url: string;
-      if (isCustomGame) {
-        url = `/api/custom-games/chart?game=${gameCode}&month=${date.getMonth() + 1}&year=${y}`;
-      } else {
-        url = `/api/game-chart?slug=${gameCode}&month=${m}&year=${y}`;
-      }
+      const url = isCustomGame
+        ? `/api/custom-games/chart?game=${gameCode}&month=${date.getMonth() + 1}&year=${y}`
+        : `/api/game-chart?slug=${gameCode}&month=${m}&year=${y}`;
       const res = await fetch(url);
       const data = await res.json();
+      const rowsByDay: Record<number, string> = {};
       if (data.success) {
-        setRows(data.results || []);
-        setDisplayMonth(data.month || m.charAt(0).toUpperCase() + m.slice(1));
-        setDisplayYear(data.year || y);
-      } else {
-        setRows([]);
+        (data.results || []).forEach((row: ChartRow) => {
+          const day = parseInt(getDayOfMonth(row.date), 10);
+          if (!isNaN(day)) rowsByDay[day] = row.result;
+        });
       }
+      return { key, year: y, monthIndex: date.getMonth(), label, rowsByDay, loaded: true };
     } catch {
-      setRows([]);
-    } finally {
-      setLoading(false);
+      return { key, year: y, monthIndex: date.getMonth(), label, rowsByDay: {}, loaded: true };
     }
   };
 
   useEffect(() => {
-    fetchChart(currentDate);
-  }, [gameCode, currentDate]);
+    let cancelled = false;
+    setLoading(true);
+    const months = getMonthsWindow(anchorDate, MONTHS_IN_VIEW);
+    Promise.all(months.map(fetchMonth)).then((results) => {
+      if (!cancelled) {
+        setColumns(results);
+        setLoading(false);
+      }
+    });
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [gameCode, anchorDate]);
 
   useEffect(() => {
     const findTime = async () => {
@@ -104,17 +135,23 @@ export default function GameChartPage({
     findTime();
   }, [gameCode]);
 
-  const navigateMonth = (dir: -1 | 1) => {
-    setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + dir));
+  // Shift the whole window back/forward by MONTHS_IN_VIEW months at a time.
+  const navigateWindow = (dir: -1 | 1) => {
+    setAnchorDate(
+      (prev) => new Date(prev.getFullYear(), prev.getMonth() + dir * MONTHS_IN_VIEW)
+    );
   };
 
-  const isCurrentMonth =
-    currentDate.getFullYear() === now.getFullYear() &&
-    currentDate.getMonth() === now.getMonth();
+  const isCurrentWindow =
+    anchorDate.getFullYear() === now.getFullYear() &&
+    anchorDate.getMonth() === now.getMonth();
+
+  const rangeLabel =
+    columns.length > 0 ? `${columns[0].label} – ${columns[columns.length - 1].label}` : "...";
 
   return (
     <div className="bg-white min-h-screen">
-      <div className="max-w-4xl mx-auto px-3 md:px-4 py-6 md:py-10">
+      <div className="max-w-5xl mx-auto px-3 md:px-4 py-6 md:py-10">
         {/* Header */}
         <div className="text-center mb-6">
           <div className="inline-flex items-center gap-2 bg-gray-100 rounded-full px-4 py-1.5 mb-3">
@@ -132,76 +169,72 @@ export default function GameChartPage({
         {/* Month Navigation */}
         <div className="flex items-center justify-between bg-gray-50 rounded-2xl border border-gray-200 px-4 py-3 mb-5">
           <button
-            onClick={() => navigateMonth(-1)}
+            onClick={() => navigateWindow(-1)}
             className="p-2 rounded-xl bg-white border border-gray-200 hover:bg-gray-100 transition-colors text-gray-700 shadow-sm"
           >
             <FiChevronLeft size={18} />
           </button>
-          <div className="text-base md:text-lg font-black text-gray-900">
-            {displayMonth || "..."} {displayYear}
+          <div className="text-sm md:text-lg font-black text-gray-900">
+            {rangeLabel}
           </div>
           <button
-            onClick={() => navigateMonth(1)}
-            disabled={isCurrentMonth}
+            onClick={() => navigateWindow(1)}
+            disabled={isCurrentWindow}
             className="p-2 rounded-xl bg-white border border-gray-200 hover:bg-gray-100 transition-colors text-gray-700 shadow-sm disabled:opacity-30 disabled:cursor-not-allowed"
           >
             <FiChevronRight size={18} />
           </button>
         </div>
 
-        {/* Chart Cards */}
+        {/* Chart Table: rows = day of month, columns = months */}
         {loading ? (
-          <div className="space-y-3">
-            {Array.from({ length: 10 }).map((_, i) => (
-              <div key={i} className="flex items-center gap-3 bg-gray-50 rounded-xl p-4">
-                <div className="skeleton h-10 w-10 rounded-xl" />
-                <div className="flex-1 space-y-1.5">
-                  <div className="skeleton h-4 w-24" />
-                  <div className="skeleton h-3 w-16" />
-                </div>
-                <div className="skeleton h-10 w-14 rounded-xl" />
-              </div>
+          <div className="space-y-2">
+            {Array.from({ length: 12 }).map((_, i) => (
+              <div key={i} className="skeleton h-9 w-full rounded-lg" />
             ))}
           </div>
-        ) : rows.length > 0 ? (
-          <div className="space-y-2">
-            {rows.map((row, i) => {
-              const hasResult = row.result && row.result !== "XX";
-              return (
-                <div
-                  key={row.date + i}
-                  className={`flex items-center gap-3 rounded-xl p-3 md:p-4 border transition-colors ${
-                    hasResult
-                      ? "bg-white border-gray-200 hover:border-gray-300"
-                      : "bg-gray-50/50 border-gray-100"
-                  }`}
-                >
-                  {/* Date */}
-                  <div className="w-11 h-11 md:w-12 md:h-12 rounded-xl bg-gray-100 flex items-center justify-center shrink-0">
-                    <span className="font-black text-gray-800 text-lg md:text-xl">
-                      {getDayOfMonth(row.date)}
-                    </span>
-                  </div>
-
-                  {/* Day + Time */}
-                  <div className="flex-1 min-w-0">
-                    <p className="font-bold text-gray-800 text-sm md:text-base">{row.day || "--"}</p>
-                    {resultTime && (
-                      <p className="text-[11px] text-gray-400 font-medium">{resultTime}</p>
-                    )}
-                  </div>
-
-                  {/* Result */}
-                  <div className={`min-w-[56px] py-2 px-3 rounded-xl text-center font-mono font-black text-xl md:text-2xl ${
-                    hasResult
-                      ? "bg-green-50 text-green-700 border border-green-200"
-                      : "text-gray-300"
-                  }`}>
-                    {row.result || "XX"}
-                  </div>
-                </div>
-              );
-            })}
+        ) : columns.some((c) => Object.keys(c.rowsByDay).length > 0) ? (
+          <div className="overflow-x-auto rounded-2xl border border-gray-200">
+            <table className="w-full border-collapse text-center">
+              <thead>
+                <tr className="bg-gray-100">
+                  <th className="sticky left-0 z-10 bg-gray-100 px-3 py-2.5 text-xs font-bold text-gray-500 uppercase tracking-wider border-b border-gray-200">
+                    Date
+                  </th>
+                  {columns.map((col) => (
+                    <th
+                      key={col.key}
+                      className="px-3 py-2.5 text-xs md:text-sm font-black text-gray-800 border-b border-l border-gray-200 whitespace-nowrap"
+                    >
+                      {col.label}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {Array.from({ length: 31 }, (_, i) => i + 1).map((day) => (
+                  <tr key={day} className="even:bg-gray-50/50">
+                    <td className="sticky left-0 z-10 bg-white even:bg-gray-50 px-3 py-2 font-bold text-gray-700 border-b border-gray-100">
+                      {day}
+                    </td>
+                    {columns.map((col) => {
+                      const result = col.rowsByDay[day];
+                      const hasResult = result && result !== "XX";
+                      return (
+                        <td
+                          key={col.key}
+                          className={`px-3 py-2 border-b border-l border-gray-100 font-mono font-bold ${
+                            hasResult ? "text-green-700" : "text-gray-300"
+                          }`}
+                        >
+                          {result || "--"}
+                        </td>
+                      );
+                    })}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         ) : (
           <div className="text-center py-16 bg-gray-50 rounded-2xl border border-gray-200">
@@ -210,7 +243,7 @@ export default function GameChartPage({
             </div>
             <p className="text-gray-500 font-medium">No chart data available</p>
             <p className="text-gray-400 text-sm mt-1">
-              {displayMonth} {displayYear} data not found for {gameName}
+              {rangeLabel} data not found for {gameName}
             </p>
           </div>
         )}

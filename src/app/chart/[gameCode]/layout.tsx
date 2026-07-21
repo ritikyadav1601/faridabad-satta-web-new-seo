@@ -3,6 +3,26 @@ import { SITE_URL } from "@/lib/site";
 
 // Per-game SEO metadata for chart pages, keyed by URL slug (gameCode).
 const CHART_META: Record<string, { title: string; description: string }> = {
+  faridabad: {
+    title: "Faridabad Result Chart & Old Records",
+    description:
+      "Check Faridabad results, daily chart records and historical data on Faridabad Satta.",
+  },
+  ghaziabad: {
+    title: "Ghaziabad Result Chart & Old Records",
+    description:
+      "Check Ghaziabad results, daily chart records and historical data on Faridabad Satta.",
+  },
+  gali: {
+    title: "Gali Result Chart & Old Records",
+    description:
+      "Check Gali results, daily chart records and historical data on Faridabad Satta.",
+  },
+  deshawer: {
+    title: "Deshawer Result Chart & Old Records",
+    description:
+      "Check Deshawer results, daily chart records and historical data on Faridabad Satta.",
+  },
   "new-gali": {
     title: "New Gali Satta King Chart",
     description:
@@ -119,21 +139,37 @@ function titleCase(slug: string): string {
     .join(" ");
 }
 
+function canonicalGameCode(gameCode: string): string {
+  const aliases: Record<string, string> = {
+    fridabad: "faridabad",
+    frbd: "faridabad",
+    gaziabad: "ghaziabad",
+    gzbd: "ghaziabad",
+    "purani-gali": "gali",
+    disawar: "deshawer",
+    desawar: "deshawer",
+    desawer: "deshawer",
+    dswr: "deshawer",
+  };
+  return aliases[gameCode.toLowerCase()] || gameCode.toLowerCase();
+}
+
 export async function generateMetadata({
   params,
 }: {
   params: Promise<{ gameCode: string }>;
 }): Promise<Metadata> {
   const { gameCode } = await params;
-  const meta = CHART_META[gameCode];
+  const canonicalCode = canonicalGameCode(gameCode);
+  const meta = CHART_META[canonicalCode];
 
-  const name = titleCase(gameCode);
+  const name = titleCase(canonicalCode);
   const title = meta?.title ?? `${name} Satta King Chart`;
   const description =
     meta?.description ??
     `Check the ${name} Satta King chart, daily results, old records, and complete chart history on Faridabad Satta.`;
 
-  const url = `${SITE_URL}/chart/${encodeURIComponent(gameCode)}`;
+  const url = `${SITE_URL}/chart/${encodeURIComponent(canonicalCode)}`;
 
   return {
     title,

@@ -5,24 +5,31 @@ import {
 } from "@/lib/firebase-cache";
 import { BLOG_POSTS } from "@/lib/blog-data";
 import { SITE_URL } from "@/lib/site";
+import { TOP_GAME_DEFS } from "@/lib/top-games";
 
 // Refresh the sitemap at most every hour.
 export const revalidate = 3600;
 
 // Convert a game name into the same slug used by /chart/[gameCode] links.
 function toSlug(name: string): string {
-  return name.toLowerCase().trim().replace(/\s+/g, "-");
+  const slug = name.toLowerCase().trim().replace(/\s+/g, "-");
+  const aliases: Record<string, string> = {
+    fridabad: "faridabad",
+    frbd: "faridabad",
+    gaziabad: "ghaziabad",
+    gzbd: "ghaziabad",
+    "purani-gali": "gali",
+    disawar: "deshawer",
+    desawar: "deshawer",
+    desawer: "deshawer",
+    dswr: "deshawer",
+  };
+  return aliases[slug] || slug;
 }
 
 // Games that always exist on the homepage, regardless of what Firestore returns.
 const FIXED_GAME_NAMES = [
-  // Top 9
-  "KOHLAPUR", "MANIPUR", "UP BAZAR", "PALWAL CITY", "FRIDABAD",
-  "MATHURA CITY", "GAZIABAD", "GALI", "DISAWAR",
-  // 3rd section
-  "sadar bazar", "gwalior", "delhi bazar", "delhi matka", "shri ganesh",
-  "agra", "faridabad", "alwar", "dwarka",
-  // Custom games
+  ...TOP_GAME_DEFS.map((game) => game.name),
   "kohlapur", "manipur", "up-bazar", "palwal-city", "mathura-city",
 ];
 

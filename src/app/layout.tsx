@@ -61,6 +61,7 @@ export const metadata: Metadata = {
   },
   robots: { index: true, follow: true },
   alternates: { canonical: SITE_URL },
+  category: "News and information",
 };
 
 const structuredData = {
@@ -71,6 +72,9 @@ const structuredData = {
       "@id": `${SITE_URL}/#organization`,
       name: SITE_NAME,
       url: SITE_URL,
+      description:
+        "An independent informational platform for live result updates and historical chart records.",
+      inLanguage: ["en-IN", "hi-IN"],
     },
     {
       "@type": "WebSite",
@@ -79,6 +83,10 @@ const structuredData = {
       url: SITE_URL,
       inLanguage: ["en-IN", "hi-IN"],
       publisher: { "@id": `${SITE_URL}/#organization` },
+      potentialAction: {
+        "@type": "ReadAction",
+        target: SITE_URL,
+      },
     },
   ],
 };

@@ -2,9 +2,10 @@
 
 import { useEffect, useState, useRef } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { format } from "date-fns";
 import { FiClock, FiTrendingUp, FiZap, FiBarChart2, FiCalendar, FiChevronDown } from "react-icons/fi";
-import { FaWhatsapp } from "react-icons/fa";
+import { FaTelegramPlane, FaWhatsapp } from "react-icons/fa";
 import { useLanguage, t } from "@/context/LanguageContext";
 import type { HomeData } from "@/lib/home-data";
 import { TOP_GAME_DEFS } from "@/lib/top-games";
@@ -88,23 +89,36 @@ function CardSkeleton() {
 // ─── Main Page ───
 
 export default function HomeClient({ initialData }: { initialData: HomeData }) {
-  // ✅ Data is fetched on the server and passed in as props — no client-side
-  // fetch waterfall, so everything is present on first paint.
-  const [liveResults] = useState<GameResult[]>(initialData.liveResults);
-  const [nextResults] = useState<GameResult[]>(initialData.nextResults);
-  const [restResults] = useState<GameResult[]>(initialData.restResults);
-  const [sk24Games] = useState<SK24Game[]>(initialData.sk24Games);
-  const [sk24Charts] = useState<SK24ChartTable[]>(initialData.sk24Charts);
-  const [monthlyChart] = useState<ChartRow[]>(initialData.monthlyChart);
-  const [monthlyChartMeta] = useState<{ month: string; year: string }>(initialData.monthlyChartMeta);
-  const [customGames] = useState<Record<string, string>>(initialData.customGames);
-  const [customGamesYesterday] = useState<Record<string, string>>(initialData.customGamesYesterday);
-  const [mongoTopGames] = useState<SK24Game[]>(initialData.mongoTopGames);
-  const [loading] = useState(false);
-  const [khaiwal] = useState<any>(initialData.khaiwal);
+  // The server provides the first render. Keeping these as props (instead of
+  // one-time state) lets router.refresh() render the newly saved DB values.
+  const router = useRouter();
+  const liveResults = initialData.liveResults;
+  const nextResults = initialData.nextResults;
+  const restResults = initialData.restResults;
+  const sk24Games = initialData.sk24Games;
+  const sk24Charts = initialData.sk24Charts;
+  const monthlyChart = initialData.monthlyChart;
+  const monthlyChartMeta = initialData.monthlyChartMeta;
+  const customGames = initialData.customGames;
+  const customGamesYesterday = initialData.customGamesYesterday;
+  const mongoTopGames = initialData.mongoTopGames;
+  const loading = false;
+  const khaiwal = initialData.khaiwal;
 
   const containerRef = useScrollAnimation([loading]);
   const { lang } = useLanguage();
+
+  useEffect(() => {
+    const refresh = () => {
+      if (document.visibilityState === "visible") router.refresh();
+    };
+    const interval = window.setInterval(refresh, 20_000);
+    window.addEventListener("focus", refresh);
+    return () => {
+      window.clearInterval(interval);
+      window.removeEventListener("focus", refresh);
+    };
+  }, [router]);
 
   const updatedAt = format(new Date(), "dd MMMM yyyy, hh:mm a") + " IST";
 
@@ -122,6 +136,23 @@ export default function HomeClient({ initialData }: { initialData: HomeData }) {
 
   // ─── Promoted games: supplied by the separate MongoDB database ───
   const topGames = mongoTopGames;
+  // Show the newest declared Top Game in the dashboard hero. Sorting by the
+  // scheduled result time keeps this in sync as results are added through day.
+  const latestTopGame = topGames
+    .filter((game) => {
+      const resultTime = parseGameTimeToMinutes(game.time);
+      return (
+        Boolean(game.today) &&
+        game.today !== "XX" &&
+        game.today !== "--" &&
+        (resultTime === null || resultTime <= istNowMinutes())
+      );
+    })
+    .sort(
+      (a, b) =>
+        (parseGameTimeToMinutes(b.time) ?? -1) -
+        (parseGameTimeToMinutes(a.time) ?? -1)
+    )[0];
   const allApiGames = [...liveResults, ...nextResults, ...restResults, ...sk24Games];
   // Former top games are now shown in Other Game Results. Games promoted above
   // are deliberately excluded here, preventing Delhi Bazar/Shri Ganesh/
@@ -204,6 +235,22 @@ export default function HomeClient({ initialData }: { initialData: HomeData }) {
           <span className="w-2 h-2 bg-amber-300 rounded-full animate-live-pulse" />
           {t("अंतिम अपडेट", "Last Updated", lang)}: {updatedAt}
         </div>
+        {latestTopGame && (
+          <div className="mx-auto mt-4 flex w-full max-w-md items-center justify-between rounded-2xl border border-amber-300/40 bg-amber-300/15 px-4 py-3 text-left shadow-lg shadow-emerald-950/15">
+            <div>
+              <p className="text-[11px] font-bold uppercase tracking-wide text-amber-200">
+                {t("अभी आया रिजल्ट", "Latest Result", lang)}
+              </p>
+              <p className="mt-0.5 text-sm font-black text-white">
+                {latestTopGame.name}
+                <span className="ml-2 text-xs font-medium text-emerald-100">{latestTopGame.time}</span>
+              </p>
+            </div>
+            <span className="font-mono text-3xl font-black tracking-wider text-amber-200">
+              {latestTopGame.today}
+            </span>
+          </div>
+        )}
       </div>
 
       {/* Disclaimer */}
@@ -252,6 +299,7 @@ export default function HomeClient({ initialData }: { initialData: HomeData }) {
 
                 {/* ─── 3TH SECTION: WhatsApp / Khaiwal ─── */}
                 <WhatsAppContactSection lang={lang} khaiwal={khaiwal} />
+                <ChannelFollowSection lang={lang} />
 
             {/* ─── 4TH SECTION: Former top games and other games ─── */}
            <GameCardSection
@@ -743,6 +791,40 @@ function WhatsAppContactSection({ lang, khaiwal }: any) {
   );
 }
 
+function ChannelFollowSection({ lang }: { lang: "hi" | "en" }) {
+  return (
+    <section className="sa opacity-0 translate-y-8 rounded-2xl border border-emerald-200 bg-gradient-to-r from-emerald-50 to-sky-50 p-5 text-center shadow-sm md:p-6">
+      <p className="text-base font-black text-gray-900 md:text-lg">
+        {t(
+          "सबसे तेज रिजल्ट के लिए चैनल को फॉलो करें 🕉️",
+          "Follow our channels for the fastest results 🕉️",
+          lang
+        )}
+      </p>
+      <div className="mt-4 flex flex-col justify-center gap-3 sm:flex-row">
+        <a
+          href="https://whatsapp.com/channel/0029Vb7N6II8fewx7GpwN01p"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center justify-center gap-2 rounded-xl bg-green-600 px-5 py-3 font-bold text-white transition hover:bg-green-700"
+        >
+          <FaWhatsapp className="h-5 w-5" />
+          WhatsApp Channel
+        </a>
+        <a
+          href="https://t.me/faridabadsattafastresult"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center justify-center gap-2 rounded-xl bg-sky-500 px-5 py-3 font-bold text-white transition hover:bg-sky-600"
+        >
+          <FaTelegramPlane className="h-5 w-5" />
+          Telegram Channel
+        </a>
+      </div>
+    </section>
+  );
+}
+
 // ─── Monthly Chart Section ───
 
 const CHART_GAMES = [
@@ -778,6 +860,15 @@ function MonthlyChartSection({
   const [selectedMonth, setSelectedMonth] = useState(currentMonthName);
   const [selectedYear, setSelectedYear] = useState(currentYear);
   const [chartLoading, setChartLoading] = useState(false);
+
+  // Keep the default/current chart in sync when the home-page 20 second
+  // refresh receives newer database data. A visitor-selected older chart is
+  // deliberately left unchanged.
+  useEffect(() => {
+    if (selectedMonth === currentMonthName && selectedYear === currentYear) {
+      setRows(initialRows);
+    }
+  }, [initialRows, currentMonthName, currentYear, selectedMonth, selectedYear]);
 
   const years = Array.from({ length: 12 }, (_, i) => String(now.getFullYear() - i));
 
