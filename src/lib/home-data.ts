@@ -7,6 +7,7 @@ import {
 import { getAdminDb } from "./firebase-admin";
 import { getISTDateString } from "./utils";
 import { getTopGamesFromMongo } from "./top-games-mongodb";
+import { getMonthlyChartFromMongo, mergeMonthlyChartData } from "./top-games-mongodb";
 import type {
   GameResult,
   ChartRow,
@@ -61,15 +62,17 @@ export async function getHomeData(): Promise<HomeData> {
   const today = getISTDateString(0);
   const yesterday = getISTDateString(-1);
 
-  const [homepage, sk24, sk24chart, chart, custom, customPrev, mongoTopGames] = await Promise.all([
+  const [homepage, sk24, sk24chart, chart, mongoChart, custom, customPrev, mongoTopGames] = await Promise.all([
     getHomepageFromFirestore(),
     getSK24GamesFromFirestore(),
     getSK24ChartsFromFirestore(),
     getMonthlyChartFromFirestore(monthName, year),
+    getMonthlyChartFromMongo(monthName, year),
     getCustomGamesForDate(today),
     getCustomGamesForDate(yesterday),
     getTopGamesFromMongo(),
   ]);
+  const mergedMonthlyChart = mergeMonthlyChartData(chart, mongoChart);
 
   return {
     liveResults: homepage?.live || [],
@@ -77,10 +80,10 @@ export async function getHomeData(): Promise<HomeData> {
     restResults: homepage?.rest || [],
     sk24Games: sk24?.games || [],
     sk24Charts: sk24chart?.tables || [],
-    monthlyChart: chart?.results || [],
+    monthlyChart: mergedMonthlyChart?.results || [],
     monthlyChartMeta: {
-      month: chart?.month || monthName,
-      year: chart?.year || year,
+      month: mergedMonthlyChart?.month || monthName,
+      year: mergedMonthlyChart?.year || year,
     },
     customGames: custom.games || {},
     customGamesYesterday: customPrev.games || {},
