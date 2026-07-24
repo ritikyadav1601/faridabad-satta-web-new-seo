@@ -1,5 +1,9 @@
 import { NextRequest } from "next/server";
-import { scrapeGameChart, scrapeSK24GameChart } from "@/lib/scraper";
+import {
+  scrapeGameChart,
+  scrapeSattaFastGameChart,
+  scrapeSK24GameChart,
+} from "@/lib/scraper";
 import { getGameChartFromFirestore } from "@/lib/firebase-cache";
 import type { GameChartData } from "@/lib/types";
 import { memGet, memSet, CHART_CACHE_HEADERS } from "@/lib/api-helpers";
@@ -17,6 +21,8 @@ const SLUG_ALIASES: Record<string, string> = {
   desawer: "desawar",
   dswr: "desawar",
 };
+
+const SATTA_FAST_SLUGS = new Set(["delhi-bazar", "shri-ganesh"]);
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
@@ -36,6 +42,25 @@ export async function GET(req: NextRequest) {
   const cached = memGet<GameChartData>(cacheKey);
   if (cached) {
     return Response.json({ success: true, ...cached }, { headers: CHART_CACHE_HEADERS });
+  }
+
+  // Delhi Bazar and Shri Ganesh are sourced directly from satta-fast.com.
+  // Keep this before database fallbacks so the chart always reflects the
+  // selected source site, while preserving local data as resilience fallback.
+  if (SATTA_FAST_SLUGS.has(slug)) {
+    try {
+      const sourceResult = await scrapeSattaFastGameChart(slug, month, year);
+      if (sourceResult) {
+        const chartData: GameChartData = { ...sourceResult, scrapedAt: Date.now() };
+        memSet(cacheKey, chartData, 300);
+        return Response.json(
+          { success: true, ...sourceResult },
+          { headers: CHART_CACHE_HEADERS }
+        );
+      }
+    } catch (error) {
+      console.error("[game-chart] satta-fast scrape failed:", (error as Error).message);
+    }
   }
 
   // The promoted homepage games use the separate MongoDB dailynumbers source.

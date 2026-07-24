@@ -3,6 +3,83 @@ import * as cheerio from "cheerio";
 
 const HEADERS = { "User-Agent": "Mozilla/5.0" };
 const TIMEOUT = 15_000;
+const SATTA_FAST_URL = "https://satta-fast.com";
+
+const SATTA_FAST_GAMES: Record<string, { column: string; name: string }> = {
+  "delhi-bazar": { column: "DLBZ", name: "DELHI BAZAR" },
+  "shri-ganesh": { column: "SHGN", name: "SHRI GANESH" },
+};
+
+const MONTH_SLUGS = [
+  "january", "february", "march", "april", "may", "june",
+  "july", "august", "september", "october", "november", "december",
+];
+
+/**
+ * Reads the dedicated monthly record chart published by satta-fast.com.
+ * That site uses one focused result column per requested game, so this parser
+ * intentionally supports only the two markets supplied by the site owner.
+ */
+export async function scrapeSattaFastGameChart(
+  slug: string,
+  month?: string,
+  year?: string,
+) {
+  const game = SATTA_FAST_GAMES[slug];
+  if (!game) return null;
+
+  const now = new Date();
+  const monthIndex = month
+    ? MONTH_SLUGS.indexOf(month.toLowerCase())
+    : now.getMonth();
+  const targetMonthIndex = monthIndex >= 0 ? monthIndex : now.getMonth();
+  const targetMonth = MONTH_SLUGS[targetMonthIndex];
+  const targetYear = year || String(now.getFullYear());
+  const url = `${SATTA_FAST_URL}/satta-king-chart/${targetMonth}-${targetYear}/${slug}`;
+
+  const { data: html } = await axios.get(url, { headers: HEADERS, timeout: TIMEOUT });
+  const $ = cheerio.load(html);
+  const table = $("table.monthly-chart").first();
+  if (!table.length) return null;
+
+  const columns = table
+    .find("tr.chart-column-header th")
+    .map((_i, el) => $(el).text().trim().toUpperCase())
+    .get();
+  const gameColIndex = columns.indexOf(game.column);
+  if (gameColIndex < 0) return null;
+  // `columns` includes the leading Date header; `.result-cell` does not.
+  const resultColumnIndex = gameColIndex - 1;
+
+  const results: { date: string; day: string; result: string }[] = [];
+  table.find("tbody tr.chart-row").each((_i, row) => {
+    const dateParts = $(row).find("td.date-cell").text().trim().split(/\s+/);
+    const values = $(row)
+      .find("td.result-cell")
+      .map((_j, cell) => $(cell).text().replace(/\s+/g, "").trim())
+      .get();
+    const date = dateParts[0];
+    if (date) {
+      results.push({
+        date,
+        day: dateParts.slice(1).join(" "),
+        result: values[resultColumnIndex] || "XX",
+      });
+    }
+  });
+
+  if (!results.length) return null;
+
+  const chartTitle = table.find(".chart-title1").text().replace(/\s+/g, " ").trim();
+  return {
+    gameName: game.name,
+    chartTitle: chartTitle || `${game.name} - ${targetMonth} ${targetYear}`,
+    month: targetMonth.charAt(0).toUpperCase() + targetMonth.slice(1),
+    year: targetYear,
+    columns,
+    results,
+  };
+}
 
 // ─── Game Chart Scraper ───
 

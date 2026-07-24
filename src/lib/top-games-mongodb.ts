@@ -179,17 +179,24 @@ export async function getTopGameChartFromMongo(
   }
 }
 
-const MONTHLY_CITY_FIELDS: Record<string, keyof Pick<ChartRow, "dswr" | "frbd" | "gzbd" | "gali">> = {
+const MONTHLY_CITY_FIELDS: Record<
+  string,
+  keyof Pick<ChartRow, "dswr" | "frbd" | "gzbd" | "gali" | "srgn" | "dlbz">
+> = {
   DESHAWER: "dswr",
+  DISAWAR: "dswr",
   FARIDABAD: "frbd",
   GHAZIABAD: "gzbd",
+  GAZIABAD: "gzbd",
+  GALI: "gali",
   "PURANI GALI": "gali",
+  "DELHI BAZAR": "dlbz",
+  "SHRI GANESH": "srgn",
 };
 
 /**
- * Provides historical rows for the four markets stored in the Top Games
- * MongoDB database. The Firestore monthly chart still supplies Delhi Bazar
- * and Shri Ganesh, and callers merge both sources before rendering.
+ * Provides historical rows for the six markets displayed in the monthly chart.
+ * Firestore data is merged afterwards only when it provides additional values.
  */
 export async function getMonthlyChartFromMongo(
   month: string,
@@ -271,7 +278,7 @@ export function mergeMonthlyChartData(
       srgn: "",
       dlbz: "",
     };
-    (["dswr", "frbd", "gzbd", "gali"] as const).forEach((field) => {
+    (["dswr", "frbd", "gzbd", "gali", "srgn", "dlbz"] as const).forEach((field) => {
       if (mongoRow[field]) existing[field] = mongoRow[field];
     });
     rows.set(day, existing);
