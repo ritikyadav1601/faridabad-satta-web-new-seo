@@ -5,7 +5,7 @@ import { load } from "cheerio";
 import { MongoClient, ObjectId } from "mongodb";
 
 const SOURCE_ROOT = "https://satta-king.org";
-const START_YEAR = 2015;
+const START_YEAR = 2017;
 const END_YEAR = new Date().getFullYear();
 const APPLY = process.argv.includes("--apply");
 const execFileAsync = promisify(execFile);
