@@ -3,11 +3,8 @@
 import { useEffect, useState } from "react";
 import { FaWhatsapp } from "react-icons/fa";
 import { getWhatsAppLink } from "@/lib/utils";
-import { useLanguage } from "@/context/LanguageContext";
 
 export function WhatsAppButton() {
-  const { lang, toggleLang } = useLanguage();
-
   const [phone, setPhone] = useState("918901302607");
 
   useEffect(() => {
@@ -30,14 +27,6 @@ export function WhatsAppButton() {
   return (
     <div className="fixed bottom-4 right-3 md:bottom-6 md:right-6 z-50 flex flex-col items-center gap-2.5">
       
-      {/* Language Toggle */}
-      <button
-        onClick={toggleLang}
-        className="bg-[#1a1a2e] text-white px-4 py-2.5 rounded-2xl shadow-xl shadow-black/20 text-sm font-bold border border-white/15 hover:bg-[#2a2a4e] transition-all hover:scale-105 active:scale-95"
-      >
-        {lang === "hi" ? "A→अ" : "अ→A"}
-      </button>
-
       {/* WhatsApp */}
       <a
         href={getWhatsAppLink("8708328760", "Faridabad Satta")}

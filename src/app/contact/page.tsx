@@ -1,94 +1,83 @@
-"use client";
-
+import Link from "next/link";
 import { FaWhatsapp } from "react-icons/fa";
-import { FiPhone } from "react-icons/fi";
-import { useLanguage, t } from "@/context/LanguageContext";
+import { FiClock, FiHeadphones } from "react-icons/fi";
+
+const WHATSAPP_NUMBER = "917355847700";
 
 export default function ContactPage() {
-  const phone = "918901302607";
-  const { lang } = useLanguage();
+  const whatsappLink = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(
+    "Hello, I need assistance with FaridabadSatta.com"
+  )}`;
 
   return (
-    <div className="bg-white min-h-screen">
-      <div className="max-w-3xl mx-auto px-4 py-10 md:py-14">
-        <h1 className="text-2xl md:text-3xl font-black text-gray-900 mb-2">
-          {t("संपर्क करें", "Contact Us", lang)}
-        </h1>
-        <p className="text-gray-500 text-sm mb-8">
-          {t("FaridabadSatta.com टीम से संपर्क करें", "Get in touch with the FaridabadSatta.com team", lang)}
-        </p>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
-          {/* WhatsApp Card */}
-          <a
-            href={`https://wa.me/${phone}?text=${encodeURIComponent("Faridabad Satta")}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="bg-gray-50 rounded-2xl border border-gray-200 p-5 flex items-start gap-4 hover:shadow-lg hover:border-green-300 transition-all group"
-          >
-            <div className="p-3 rounded-xl bg-green-500 text-white shrink-0 group-hover:scale-110 transition-transform">
-              <FaWhatsapp size={24} />
-            </div>
-            <div>
-              <h3 className="font-bold text-gray-900 text-lg">WhatsApp</h3>
-              <p className="text-gray-500 text-sm mt-0.5">
-                {t("तुरंत चैट करें", "Chat with us instantly", lang)}
-              </p>
-              <p className="text-green-600 font-bold text-sm mt-2">+{phone}</p>
-            </div>
-          </a>
-
-          {/* Phone Card */}
-          <a
-            href={`tel:+${phone}`}
-            className="bg-gray-50 rounded-2xl border border-gray-200 p-5 flex items-start gap-4 hover:shadow-lg hover:border-blue-300 transition-all group"
-          >
-            <div className="p-3 rounded-xl bg-blue-600 text-white shrink-0 group-hover:scale-110 transition-transform">
-              <FiPhone size={24} />
-            </div>
-            <div>
-              <h3 className="font-bold text-gray-900 text-lg">{t("फोन", "Phone", lang)}</h3>
-              <p className="text-gray-500 text-sm mt-0.5">
-                {t("सीधे कॉल करें", "Call us directly", lang)}
-              </p>
-              <p className="text-blue-600 font-bold text-sm mt-2">+{phone}</p>
-            </div>
-          </a>
-
-        </div>
-
-        {/* WhatsApp CTA */}
-        <div className="bg-[#1a1a2e] rounded-2xl p-6 md:p-8 text-center">
-          <p className="text-white font-bold text-lg mb-1">
-            {t("सहायता के लिए संपर्क करें", "Contact us for assistance", lang)}
+    <main className="min-h-screen bg-[var(--surface-page)]">
+      <article className="mx-auto max-w-4xl px-4 py-10 md:py-14">
+        <header className="rounded-2xl border border-indigo-100 bg-white p-6 shadow-sm md:p-8">
+          <p className="text-sm font-bold uppercase tracking-wider text-indigo-600">Get in Touch</p>
+          <h1 className="mt-2 text-3xl font-black tracking-tight text-gray-900 md:text-4xl">Contact Us</h1>
+          <p className="mt-5 leading-7 text-gray-600">
+            Thank you for visiting FaridabadSatta.com. We value your feedback and are always happy to hear from our visitors. If you have any questions, suggestions, or need assistance regarding our website, you can contact our support team through the available contact methods. We aim to respond to genuine inquiries as quickly as possible.
           </p>
-          <p className="text-amber-400 font-black text-2xl mb-4">FARIDABAD SATTA</p>
-          <a
-            href={`https://wa.me/${phone}?text=${encodeURIComponent("Faridabad Satta")}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-3 bg-green-500 hover:bg-green-600 text-white font-black text-lg px-8 py-3.5 rounded-2xl shadow-xl shadow-green-500/25 transition-all hover:scale-105"
-          >
-            <FaWhatsapp className="w-7 h-7" />
-            <div className="text-left">
-              <div className="text-lg font-black leading-tight">WhatsApp Now</div>
-              <div className="text-xs font-semibold opacity-80">
-                {t("तुरंत चैट करने के लिए क्लिक करें", "Click to chat instantly", lang)}
-              </div>
+        </header>
+
+        <div className="mt-6 grid gap-5 md:grid-cols-2">
+          <section className="rounded-2xl border border-gray-200 bg-white p-5 md:p-7">
+            <div className="flex items-center gap-3">
+              <span className="rounded-xl bg-indigo-50 p-3 text-indigo-600"><FiHeadphones size={22} /></span>
+              <h2 className="text-xl font-black text-gray-900 md:text-2xl">Customer Support</h2>
             </div>
-          </a>
+            <p className="mt-4 leading-7 text-gray-600">
+              If you need help with website navigation, have questions about our informational content, want to report an error, or wish to share feedback, our support team is here to assist you. Please provide complete details so we can review your request and offer the appropriate response.
+            </p>
+          </section>
+
+          <section className="rounded-2xl border border-gray-200 bg-white p-5 md:p-7">
+            <div className="flex items-center gap-3">
+              <span className="rounded-xl bg-amber-50 p-3 text-amber-600"><FiClock size={22} /></span>
+              <h2 className="text-xl font-black text-gray-900 md:text-2xl">Response Time</h2>
+            </div>
+            <p className="mt-4 leading-7 text-gray-600">
+              We make every effort to reply to all genuine inquiries within 24–48 hours during our regular support hours. Some requests that require additional review may take slightly longer. We appreciate your patience and understanding.
+            </p>
+          </section>
         </div>
 
-        {/* Disclaimer */}
-        <div className="mt-8 bg-red-50 border border-red-200 rounded-xl p-4 text-xs text-red-700">
-          <strong>{t("अस्वीकरण:", "Disclaimer:", lang)}</strong>{" "}
-          {t(
-            "FaridabadSatta.com केवल एक सूचनात्मक वेबसाइट है। हम किसी भी प्रकार के जुए को बढ़ावा नहीं देते। कृपया अपने स्थानीय कानूनों का पालन करें।",
-            "FaridabadSatta.com is an informational website only. We do not promote or facilitate gambling in any form. Please follow your local laws.",
-            lang
-          )}
-        </div>
-      </div>
-    </div>
+        <section className="mt-5 overflow-hidden rounded-2xl border border-green-200 bg-white shadow-sm">
+          <div className="p-6 md:p-8">
+            <h2 className="text-xl font-black text-gray-900 md:text-2xl">Contact Information</h2>
+            <p className="mt-4 text-sm font-bold uppercase tracking-wide text-gray-500">WhatsApp Support</p>
+            <a
+              href={whatsappLink}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-1 inline-block text-2xl font-black text-green-700 hover:underline md:text-3xl"
+            >
+              +91 73558 47700
+            </a>
+            <p className="mt-4 leading-7 text-gray-600">
+              For the fastest assistance, please contact us through WhatsApp. You can also visit our{" "}
+              <Link href="/complaint" className="font-bold text-indigo-600 hover:underline">Complaint page</Link>
+              {" if you need to report a website-related issue."}
+            </p>
+          </div>
+          <a
+            href={whatsappLink}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center justify-center gap-3 bg-green-600 px-6 py-4 text-lg font-black text-white transition hover:bg-green-700"
+          >
+            <FaWhatsapp size={26} />
+            Contact Support on WhatsApp
+          </a>
+        </section>
+
+        <section className="mt-5 rounded-2xl border border-red-200 bg-red-50 p-5 text-red-700 md:p-7">
+          <h2 className="text-xl font-black text-red-800 md:text-2xl">Important Notice</h2>
+          <p className="mt-3 leading-7">
+            FaridabadSatta.com is an independent informational website. We do not provide betting, gambling, financial, or prediction services. Our support team only handles inquiries related to the website, its content, technical issues, and general feedback.
+          </p>
+        </section>
+      </article>
+    </main>
   );
 }

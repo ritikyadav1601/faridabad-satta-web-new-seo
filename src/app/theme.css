@@ -5,23 +5,25 @@
  * utilities below instead of needing individual color edits.
  */
  :root {
-  --surface-page: #f6f7f4;
+  --surface-page: #f5f7ff;
   --surface-card: #ffffff;
-  --surface-muted: #eef1ea;
-  --surface-subtle: #d8e0d2;
+  --surface-muted: #eef1ff;
+  --surface-subtle: #dfe4f5;
 
-  --text-strong: #1f2937;
-  --text-default: #374151;
-  --text-muted: #6b7280;
-  --border-default: #d1d5db;
+  --text-strong: #111827;
+  --text-default: #334155;
+  --text-muted: #64748b;
+  --border-default: #dce2f0;
 
-  --color-brand-deep: #1b4332;
-  --color-brand: #2d6a4f;
-  --color-brand-light: #d8f3dc;
+  --color-brand-deep: #11152f;
+  --color-brand: #4f46e5;
+  --color-brand-light: #e0e7ff;
 
-  --color-accent: #c9a227;
-  --color-accent-light: #fff7d6;
-  --color-accent-strong: #9a7b12;
+  --color-accent: #f5b82e;
+  --color-accent-light: #fff8df;
+  --color-accent-strong: #b77900;
+  --color-cyan: #06b6d4;
+  --color-danger: #ef476f;
 }
 
 /* Neutral colors used for content, cards, and tables */
@@ -51,3 +53,53 @@
 .hover\:bg-green-600:hover, .hover\:bg-green-500:hover { background-color: var(--color-brand); }
 .hover\:text-amber-600:hover, .hover\:text-amber-700:hover { color: var(--color-accent-strong); }
 .hover\:border-amber-300:hover { border-color: var(--color-accent); }
+
+/* Shared visual language */
+.site-hero {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  border-bottom: 1px solid var(--border-default);
+  background: #ffffff;
+}
+
+.site-hero::after {
+  content: none;
+}
+
+.results-section {
+  border: 1px solid var(--border-default);
+  border-radius: 24px;
+  padding: 18px;
+  background: rgb(255 255 255 / 86%);
+  box-shadow: 0 18px 48px rgb(30 41 59 / 8%);
+  backdrop-filter: blur(12px);
+}
+
+.results-table-shell {
+  overflow: hidden;
+  border: 1px solid #d8deed;
+  border-radius: 18px;
+  box-shadow: 0 8px 22px rgb(30 41 59 / 6%);
+}
+
+.results-table-shell table thead tr {
+  background: linear-gradient(100deg, #171a39, #312e81);
+}
+
+.results-table-shell table td,
+.results-table-shell table th {
+  border-color: #e2e7f2;
+}
+
+.results-table-shell table tbody tr {
+  background: #fff;
+}
+
+.results-table-shell table tbody tr:nth-child(even) {
+  background: #f8f9ff;
+}
+
+.results-table-shell table tbody tr:hover {
+  background: #fff9e8;
+}

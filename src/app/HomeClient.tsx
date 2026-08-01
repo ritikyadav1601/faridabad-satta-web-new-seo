@@ -107,6 +107,14 @@ export default function HomeClient({ initialData }: { initialData: HomeData }) {
 
   const containerRef = useScrollAnimation([loading]);
   const { lang } = useLanguage();
+  const [clockText, setClockText] = useState("");
+
+  useEffect(() => {
+    const updateClock = () => setClockText(formatIstClock(new Date()));
+    updateClock();
+    const clockInterval = window.setInterval(updateClock, 1_000);
+    return () => window.clearInterval(clockInterval);
+  }, []);
 
   useEffect(() => {
     const refresh = () => {
@@ -119,8 +127,6 @@ export default function HomeClient({ initialData }: { initialData: HomeData }) {
       window.removeEventListener("focus", refresh);
     };
   }, [router]);
-
-  const updatedAt = format(new Date(), "dd MMMM yyyy, hh:mm a") + " IST";
 
   // Games to hide from all sections
   const hiddenGames = new Set([
@@ -138,21 +144,40 @@ export default function HomeClient({ initialData }: { initialData: HomeData }) {
   const topGames = mongoTopGames;
   // Show the newest declared Top Game in the dashboard hero. Sorting by the
   // scheduled result time keeps this in sync as results are added through day.
+  const currentIstMinutes = istNowMinutes();
+  const isTopGameDeclared = (game: SK24Game) => {
+    const resultTime = parseGameTimeToMinutes(game.time);
+    return (
+      Boolean(game.today) &&
+      game.today !== "XX" &&
+      game.today !== "--" &&
+      (resultTime === null || resultTime <= currentIstMinutes)
+    );
+  };
   const latestTopGame = topGames
-    .filter((game) => {
-      const resultTime = parseGameTimeToMinutes(game.time);
-      return (
-        Boolean(game.today) &&
-        game.today !== "XX" &&
-        game.today !== "--" &&
-        (resultTime === null || resultTime <= istNowMinutes())
-      );
-    })
+    .filter(isTopGameDeclared)
     .sort(
       (a, b) =>
         (parseGameTimeToMinutes(b.time) ?? -1) -
         (parseGameTimeToMinutes(a.time) ?? -1)
     )[0];
+  const upcomingTopGames = topGames
+    .filter((game) => {
+      const resultTime = parseGameTimeToMinutes(game.time);
+      return resultTime !== null && resultTime > currentIstMinutes;
+    })
+    .sort(
+      (a, b) =>
+        (parseGameTimeToMinutes(a.time) ?? Number.MAX_SAFE_INTEGER) -
+        (parseGameTimeToMinutes(b.time) ?? Number.MAX_SAFE_INTEGER)
+    );
+  const tomorrowTopGames = [...topGames].sort(
+    (a, b) =>
+      (parseGameTimeToMinutes(a.time) ?? Number.MAX_SAFE_INTEGER) -
+      (parseGameTimeToMinutes(b.time) ?? Number.MAX_SAFE_INTEGER)
+  );
+  const upcomingTopGame = upcomingTopGames[0] || tomorrowTopGames[0];
+  const upcomingIsTomorrow = upcomingTopGames.length === 0;
   const allApiGames = [...liveResults, ...nextResults, ...restResults, ...sk24Games];
   // Former top games are now shown in Other Game Results. Games promoted above
   // are deliberately excluded here, preventing Delhi Bazar/Shri Ganesh/
@@ -213,48 +238,49 @@ export default function HomeClient({ initialData }: { initialData: HomeData }) {
   return (
     <div ref={containerRef} className="bg-[var(--surface-page)]">
       {/* Hero */}
-      <div className="bg-gradient-to-br from-[var(--color-brand-deep)] via-emerald-900 to-teal-700 text-white text-center py-6 md:py-10 px-3 md:px-4">
-        <div className="inline-block mb-3 px-4 py-1.5 rounded-full bg-white/10 border border-white/20">
-          <span className="text-emerald-100 text-xs md:text-sm font-bold tracking-wider uppercase">
-            {t("लाइव रिजल्ट डैशबोर्ड", "Live Results Dashboard", lang)}
-          </span>
-        </div>
-        <h1 className="text-2xl sm:text-3xl md:text-4xl font-black tracking-tight mb-2">
+      <div className="site-hero px-3 py-8 text-center text-slate-900 md:px-4 md:py-12">
+       
+        <h1 className="mb-2 text-3xl font-black tracking-[-0.04em] sm:text-4xl md:text-5xl">
           Faridabad Satta {format(new Date(), "yyyy")}
-          <br className="md:hidden" />
-          <span className="text-amber-300"> {t("लाइव रिजल्ट", "Live Results", lang)}</span>
         </h1>
-        <p className="text-emerald-100/80 text-sm md:text-base max-w-2xl mx-auto">
-          {t(
-            "लाइव सट्टा रिजल्ट अपडेट। गली, देसावर, गाज़ियाबाद, फरीदाबाद और अन्य गेम्स।",
-            "Live Satta result updates for Gali, Desawar, Ghaziabad, Faridabad and more games.",
-            lang
-          )}
-        </p>
-        <div className="mt-4 inline-flex items-center gap-2 bg-white/10 border border-white/15 rounded-full px-4 py-2 text-xs text-emerald-100">
+      
+        <div className="mt-4 inline-flex items-center gap-2 rounded-full border border-slate-200 bg-slate-50 px-4 py-2 font-mono text-xs font-bold tabular-nums text-slate-700 sm:text-sm">
           <span className="w-2 h-2 bg-amber-300 rounded-full animate-live-pulse" />
-          {t("अंतिम अपडेट", "Last Updated", lang)}: {updatedAt}
+          <time suppressHydrationWarning>{clockText || "Loading clock..."}</time>
         </div>
-        {latestTopGame && (
-          <div className="mx-auto mt-4 flex w-full max-w-md items-center justify-between rounded-2xl border border-amber-300/40 bg-amber-300/15 px-4 py-3 text-left shadow-lg shadow-emerald-950/15">
-            <div>
-              <p className="text-[11px] font-bold uppercase tracking-wide text-amber-200">
-                {t("अभी आया रिजल्ट", "Latest Result", lang)}
-              </p>
-              <p className="mt-0.5 text-sm font-black text-white">
-                {latestTopGame.name}
-                <span className="ml-2 text-xs font-medium text-emerald-100">{latestTopGame.time}</span>
-              </p>
+        <div className={`mx-auto mt-5 grid w-full gap-3 ${latestTopGame ? "max-w-2xl sm:grid-cols-2" : "max-w-md"}`}>
+          {upcomingTopGame && (
+            <div className="flex items-center justify-between rounded-2xl border border-indigo-200 bg-indigo-50/70 px-4 py-3.5 text-left shadow-sm">
+              <div>
+               
+                <p className="mt-1 text-lg font-black text-slate-900">{upcomingTopGame.name}</p>
+                <p className="mt-0.5 text-xs font-semibold text-slate-500">
+                  {upcomingIsTomorrow ? `${t("कल", "Tomorrow", lang)} • ` : ""}{upcomingTopGame.time}
+                </p>
+              </div>
+              <span className="  px-3 py-2 text-center ">
+                <span className="mt-0.5 block font-mono text-xl font-black text-red-500">XX</span>
+              </span>
             </div>
-            <span className="font-mono text-3xl font-black tracking-wider text-amber-200">
-              {latestTopGame.today}
-            </span>
-          </div>
-        )}
+          )}
+
+          {latestTopGame && (
+            <div className="flex items-center justify-between rounded-2xl border border-amber-200 bg-amber-50/70 px-4 py-3.5 text-left shadow-sm">
+                <div>
+                 
+                  <p className="mt-1 text-lg font-black text-slate-900">{latestTopGame.name}</p>
+                  <p className="mt-0.5 text-xs font-semibold text-slate-500">{latestTopGame.time}</p>
+                </div>
+                <span className="rounded-xl bg-white px-3 py-1 font-mono text-3xl font-black tracking-wider text-amber-600 shadow-sm">
+                  {latestTopGame.today}
+                </span>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Disclaimer */}
-      <div className="bg-gray-50 border-b border-gray-200 py-1.5 px-2 md:px-4">
+      {/* <div className="bg-gray-50 border-b border-gray-200 py-1.5 px-2 md:px-4">
         <p className="text-center text-[11px] md:text-xs text-gray-500 max-w-4xl mx-auto">
           <span className="font-bold text-red-500">{t("अस्वीकरण", "DISCLAIMER", lang)}:</span>{" "}
           {t(
@@ -266,7 +292,7 @@ export default function HomeClient({ initialData }: { initialData: HomeData }) {
             {t("पूरा अस्वीकरण पढ़ें", "Read Full Disclaimer", lang)}
           </Link>
         </p>
-      </div>
+      </div> */}
 
       <div className="max-w-[1400px] mx-auto px-2 sm:px-3 md:px-6 py-5 md:py-8 space-y-8 md:space-y-10">
 
@@ -286,6 +312,7 @@ export default function HomeClient({ initialData }: { initialData: HomeData }) {
               accentColor="text-teal-700"
               games={topGames}
               isLive
+              emphasizeToday
               lang={lang}
             />
 
@@ -401,6 +428,24 @@ export default function HomeClient({ initialData }: { initialData: HomeData }) {
   );
 }
 
+function formatIstClock(date: Date): string {
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone: "Asia/Kolkata",
+    month: "long",
+    day: "numeric",
+    year: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: true,
+  }).formatToParts(date);
+
+  const value = (type: Intl.DateTimeFormatPartTypes) =>
+    parts.find((part) => part.type === type)?.value || "";
+
+  return `${value("month")} ${value("day")}, ${value("year")} ${value("hour")}:${value("minute")}:${value("second")} ${value("dayPeriod")}`;
+}
+
 
 // Parse a game time like "01:39 PM" / "9:20 PM" into minutes since midnight.
 // Returns null if the string is empty or not a recognizable time.
@@ -471,6 +516,7 @@ function GameCardSection({
   accentColor,
   games,
   isLive,
+  emphasizeToday = false,
   lang,
 }: {
   title: string;
@@ -480,10 +526,11 @@ function GameCardSection({
   accentColor: string;
   games: (GameResult | SK24Game)[];
   isLive?: boolean;
+  emphasizeToday?: boolean;
   lang: "hi" | "en";
 }) {
   return (
-    <section className="opacity-100">
+    <section className="results-section opacity-100">
       {/* Header */}
       <div className="flex items-center gap-3 mb-4">
         <div>
@@ -507,24 +554,31 @@ function GameCardSection({
       </div>
 
       {/* Table */}
-      <div className="overflow-x-auto border-2 border-black rounded-xl">
-        <table className="w-full border-collapse">
+      <div className="results-table-shell overflow-x-auto">
+        <table className={`w-full border-collapse ${emphasizeToday ? "table-fixed" : ""}`}>
+          {emphasizeToday && (
+            <colgroup>
+              <col className="w-[42%]" />
+              <col className="w-[calc(29%_-_12px)]" />
+              <col className="w-[calc(29%_+_12px)]" />
+            </colgroup>
+          )}
           <thead>
-            <tr className="bg-black text-white">
-              <th className="border border-black px-3 py-3 text-left">
+            <tr className="text-white">
+              <th className="border px-3 py-3 text-left">
                 Game
               </th>
 
-              <th className="border border-black px-3 py-2 text-center">
-                <div>Yesterday</div>
+              <th className={`border text-center ${emphasizeToday ? "px-1.5 py-2" : "px-3 py-2"}`}>
+                <div className={emphasizeToday ? "text-[10px] sm:text-xs font-semibold text-white/75" : ""}>Yesterday</div>
                 <div className="text-[11px] md:text-xs font-semibold text-green-300 mt-0.5">
                   {istDayLabel(-1)}
                 </div>
               </th>
 
-              <th className="border border-black px-3 py-2 text-center">
-                <div>Today</div>
-                <div className="text-[11px] md:text-xs font-semibold text-green-300 mt-0.5">
+              <th className={`border text-center ${emphasizeToday ? "px-3 py-3 bg-emerald-600/25" : "px-3 py-2"}`}>
+                <div className={emphasizeToday ? "text-base md:text-lg font-black" : ""}>Today</div>
+                <div className={`${emphasizeToday ? "text-xs md:text-sm" : "text-[11px] md:text-xs"} font-semibold text-green-300 mt-0.5`}>
                   {istDayLabel(0)}
                 </div>
               </th>
@@ -545,10 +599,10 @@ function GameCardSection({
               return (
                 <tr
                   key={game.name + i}
-                  className="bg-gray-100 hover:bg-yellow-50 transition"
+                  className="transition"
                 >
                   {/* Game Name */}
-                  <td className="border border-black px-1 py-2 bg-amber-50 text-center">
+                  <td className="border px-2 py-3 text-center">
                     <div className="font-black uppercase text-sm md:text-base leading-none">
                       {game.name}
                     </div>
@@ -562,24 +616,24 @@ function GameCardSection({
                   </td>
 
                   {/* Yesterday */}
-                  <td className="border border-black px-3 py-1.5 text-center">
-                    <span className="font-mono font-black text-2xl md:text-3xl text-gray-800">
+                  <td className={`border text-center ${emphasizeToday ? "px-1.5 py-2 bg-gray-50/80" : "px-3 py-2"}`}>
+                    <span className={`font-mono font-black text-gray-800 ${emphasizeToday ? "text-2xl md:text-3xl text-gray-500" : "text-2xl md:text-3xl"}`}>
                       {game.yesterday || "XX"}
                     </span>
                   </td>
 
                   {/* Today */}
-                  <td className="border border-black px-3 py-1.5 text-center">
+                  <td className={`border text-center ${emphasizeToday ? "px-3 py-3 bg-emerald-50/70" : "px-3 py-2"}`}>
                     {hasResult ? (
-                      <span className="font-mono font-black text-2xl md:text-3xl text-green-600">
+                      <span className={`font-mono font-black text-green-600 ${emphasizeToday ? "text-3xl md:text-4xl" : "text-2xl md:text-3xl"}`}>
                         {game.today}
                       </span>
                     ) : isLive ? (
-                      <span className="font-bold text-red-500 text-sm md:text-base">
+                      <span className={`font-bold text-red-500 ${emphasizeToday ? "text-xl md:text-2xl" : "text-sm md:text-base"}`}>
                         XX
                       </span>
                     ) : (
-                      <span className="font-mono font-black text-2xl md:text-3xl text-gray-400">
+                      <span className={`font-mono font-black text-gray-400 ${emphasizeToday ? "text-3xl md:text-4xl" : "text-2xl md:text-3xl"}`}>
                         XX
                       </span>
                     )}
@@ -900,16 +954,14 @@ function MonthlyChartSection({
   };
 
   const displayMonth = selectedMonth.charAt(0).toUpperCase() + selectedMonth.slice(1);
-  const title = lang === "hi"
-    ? `${displayMonth} ${selectedYear} मंथली चार्ट`
-    : `${displayMonth} ${selectedYear} Monthly Chart`;
+  const title = `${displayMonth} ${selectedYear} Monthly Chart`;
 
   return (
     <section className="sa opacity-0 translate-y-8">
       <div className="flex items-center gap-2.5 md:gap-3 mb-4">
         <div>
           <h2 className="text-lg md:text-xl font-black text-gray-900">
-            {lang === "hi" ? "मंथली चार्ट" : "Monthly Chart"} {selectedYear}
+            Monthly Chart {selectedYear}
           </h2>
           <p className="text-xs text-gray-400">Delhi Bazar, Shri Ganesh, Faridabad, Gaziabad, Gali, Disawar</p>
         </div>
@@ -1012,69 +1064,111 @@ function MonthlyChartSection({
 // ─── SEO Content ───
 
 function SeoContent({ lang }: { lang: "hi" | "en" }) {
+  const today = new Intl.DateTimeFormat("en-GB", {
+    timeZone: "Asia/Kolkata",
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  }).format(new Date());
+
   return (
-    <div className="sa opacity-0 translate-y-8 bg-gray-50 rounded-2xl border border-gray-200 p-5 md:p-8 space-y-4 text-sm text-gray-600 leading-relaxed">
-      <h2 className="text-xl md:text-2xl font-black text-gray-900">
-        {t("Faridabad Satta के बारे में", "About Faridabad Satta", lang)}
-      </h2>
-      <p>
-        {t(
-          "FaridabadSatta.com परिणाम और पुराने चार्ट रिकॉर्ड को एक ही स्थान पर देखने के लिए बनाया गया है। डेटा उपलब्ध होते ही प्लेटफॉर्म अपडेट किया जाता है।",
-          "FaridabadSatta.com is built to make results and historical chart records easy to find in one place. The platform is updated as data becomes available.",
-          lang
-        )}
-      </p>
-      <p>
-        {t(
-          "चाहे आप गली, देसावर, गाज़ियाबाद, फरीदाबाद, या 100+ क्षेत्रीय गेम्स में से कोई भी फॉलो करते हों, हम आपको तुरंत अपडेट और व्यापक चार्ट रिकॉर्ड प्रदान करते हैं।",
-          "Whether you follow Gali, Desawar, Ghaziabad, Faridabad, or any of the 100+ regional games, we have you covered with instant updates and comprehensive chart records.",
-          lang
-        )}
-      </p>
+    <article className="sa opacity-0 translate-y-8 rounded-2xl border border-gray-200 bg-gray-50 p-5 text-sm leading-relaxed text-gray-600 md:p-8">
+      <header className="mb-7">
+        <h2 className="text-2xl font-black tracking-tight text-gray-900 md:text-3xl">
+          Satta King Result Today {today} | Faridabad Satta Live Updates
+        </h2>
+        <p className="mt-3">
+          Welcome to <strong className="text-gray-900">FaridabadSatta.com</strong>, your trusted source for daily satta king and faridabad satta information. Our platform provides timely result updates, organized archives, and easy access to regional charts. Whether you are checking today&apos;s updates or exploring previous records, everything is arranged in a simple, user-friendly format that works smoothly across all devices.
+        </p>
+      </header>
 
-      <h3 className="text-lg font-bold text-gray-900">
-        {t("FaridabadSatta.com क्यों चुनें?", "Why Choose FaridabadSatta.com?", lang)}
-      </h3>
-      <ul className="list-none space-y-2 pl-0">
-        <li className="flex items-start gap-2">
-          <span className="text-green-600 font-bold mt-0.5">&#10003;</span>
-          <span>
-            <strong className="text-gray-900">{t("बिजली की तेज़ी:", "Lightning Fast:", lang)}</strong>{" "}
-            {t("रिजल्ट घोषित होते ही अपडेट।", "Results updated the moment they are declared.", lang)}
-          </span>
-        </li>
-        <li className="flex items-start gap-2">
-          <span className="text-green-600 font-bold mt-0.5">&#10003;</span>
-          <span>
-            <strong className="text-gray-900">{t("100+ गेम्स:", "100+ Games:", lang)}</strong>{" "}
-            {t("राष्ट्रीय और क्षेत्रीय बाजारों की पूरी कवरेज।", "Complete coverage of national and regional markets.", lang)}
-          </span>
-        </li>
-        <li className="flex items-start gap-2">
-          <span className="text-green-600 font-bold mt-0.5">&#10003;</span>
-          <span>
-            <strong className="text-gray-900">{t("चार्ट रिकॉर्ड:", "Chart Records:", lang)}</strong>{" "}
-            {t(`2015 से ${new Date().getFullYear()} तक का ऐतिहासिक डेटा।`, `Historical data from 2015 to ${new Date().getFullYear()}.`, lang)}
-          </span>
-        </li>
-        <li className="flex items-start gap-2">
-          <span className="text-green-600 font-bold mt-0.5">&#10003;</span>
-          <span>
-            <strong className="text-gray-900">{t("मोबाइल ऑप्टिमाइज़्ड:", "Mobile Optimized:", lang)}</strong>{" "}
-            {t("सबसे अच्छे मोबाइल अनुभव के लिए बनाया गया।", "Built for the best mobile experience.", lang)}
-          </span>
-        </li>
-      </ul>
+      <SeoSection title="About FaridabadSatta.com">
+        <p>FaridabadSatta.com is an independent information portal focused on publishing satta king and faridabad satta records in a well-organized manner. We maintain historical charts, regional archives, and daily updates so visitors can quickly find the information they need. Every page is designed for fast loading, easy navigation, and a better browsing experience on desktop and mobile devices.</p>
+        <p>Our website also provides archives for Delhi Bazar, Ghaziabad, Gali, Disawar, Shree Ganesh, Old Alwar, and many other popular categories. Instead of searching across multiple websites, users can browse everything from one organized platform.</p>
+      </SeoSection>
 
-      <h3 className="text-lg font-bold text-gray-900">{t("अस्वीकरण", "Disclaimer", lang)}</h3>
-      <div className="bg-red-50 border border-red-200 rounded-xl p-4 text-xs text-red-700">
-        <strong>{t("महत्वपूर्ण:", "Important:", lang)}</strong>{" "}
-        {t(
-          "FaridabadSatta.com पूरी तरह से सूचनात्मक उद्देश्यों के लिए है। हम किसी भी जुआ संचालन का स्वामित्व, संचालन या सुविधा नहीं देते। कृपया अपने क्षेत्रीय कानूनों का पालन करें।",
-          "FaridabadSatta.com is strictly for informational purposes. We do not own, operate, or facilitate any gambling operations. Please comply with your regional laws.",
-          lang
-        )}
-      </div>
+      <SeoSection title={`Latest Satta King Result Today (${today})`}>
+        <p>The latest satta king result today is updated after the official publishing schedule. Visitors looking for the daily faridabad satta result can access today&apos;s information through our live result section without unnecessary delays. Our goal is to make daily updates available quickly while maintaining organized records for future reference.</p>
+        <p>Along with today&apos;s faridabad satta result, we provide updates for multiple regional categories through our All Game section. Every result page helps users locate the latest numbers and previous daily records.</p>
+      </SeoSection>
+
+      <SeoSection title="Regional Results & Historical Archives">
+        <p>Our archive section is designed for users who want to explore previous satta king and faridabad satta records. Historical charts are arranged by month, year, and regional category, making older entries easy to browse.</p>
+        <div className="mt-4 grid gap-3 md:grid-cols-2">
+          <ArchiveItem title="Faridabad Satta Results">Daily updates with complete monthly and yearly records, including today&apos;s result and historical charts.</ArchiveItem>
+          <ArchiveItem title="Delhi Bazar Results">Regularly updated daily records and historical chart collections in organized tables.</ArchiveItem>
+          <ArchiveItem title="Ghaziabad Results">Complete daily records and long-term charts arranged in chronological order.</ArchiveItem>
+          <ArchiveItem title="Gali Results">Organized daily, monthly, and yearly archives that make specific dates easy to locate.</ArchiveItem>
+          <ArchiveItem title="Disawar Results">Regularly updated records supported by charts from previous months and years.</ArchiveItem>
+        </div>
+      </SeoSection>
+
+      <SeoSection title="All Game Satta Result Overview">
+        <p>FaridabadSatta.com is a central destination for satta king, faridabad satta, and regional chart records. Users can access Delhi Bazar, Ghaziabad, Gali, Disawar, Shree Ganesh, Old Alwar, and other archives from one platform. Every result section is categorized to improve navigation and provide a consistent browsing experience across desktop and mobile devices.</p>
+      </SeoSection>
+
+      <SeoSection title="News & Website Updates">
+        <p>We continuously improve the platform to provide faster access during peak traffic hours. Recent improvements include better archive navigation, enhanced mobile compatibility, and simplified result pages, making historical records and previous dates easier to locate.</p>
+      </SeoSection>
+
+      <SeoSection title="Educational Articles">
+        <div className="grid gap-3 md:grid-cols-2">
+          <ArchiveItem title="Understanding Satta King Historical Charts">Historical records show how archived data is organized over time. Structured tables make it easier to navigate and compare dates.</ArchiveItem>
+          <ArchiveItem title="How to Read Faridabad Satta Charts">Faridabad archives use a simple table format to display dates and published records, helping visitors browse monthly archives and locate historical information.</ArchiveItem>
+        </div>
+      </SeoSection>
+
+      <SeoSection title="Why Choose FaridabadSatta.com">
+        <p>FaridabadSatta.com focuses on speed, organization, and user convenience. The platform combines daily updates, historical archives, regional result sections, and organized chart collections in one clean, responsive website.</p>
+      </SeoSection>
+
+      <SeoSection title="Frequently Asked Questions">
+        <div className="divide-y divide-gray-200 rounded-xl border border-gray-200 bg-white px-4">
+          <FaqItem question="Where can I check today's Satta King result?">The latest result is available on the homepage in the live result section, with links to previous historical records.</FaqItem>
+          <FaqItem question="When is the Faridabad Satta result updated?">It is generally updated around the scheduled evening announcement. Check the homepage shortly after the official timing.</FaqItem>
+          <FaqItem question="Does the website provide All Game Satta records?">Yes. Archives include Faridabad, Delhi Bazar, Ghaziabad, Gali, Disawar, Shree Ganesh, Old Alwar, and other regional categories.</FaqItem>
+          <FaqItem question="Can I browse previous charts?">Yes. Historical records are available through organized monthly and yearly chart collections.</FaqItem>
+          <FaqItem question="Is registration required?">No. Results, archives, and historical records can be viewed without creating an account.</FaqItem>
+        </div>
+      </SeoSection>
+
+      <section className="mt-7 rounded-xl border border-red-200 bg-red-50 p-4 text-red-700">
+        <h3 className="text-lg font-bold text-red-800">Disclaimer</h3>
+        <p className="mt-2">FaridabadSatta.com is an independent informational website created to organize publicly available satta king and faridabad satta records. The website does not promote, support, or facilitate gambling, betting, or any illegal activity in any form.</p>
+        <p className="mt-2">All charts, archives, historical records, and regional information are intended solely for informational, educational, and historical reference purposes. Visitors are encouraged to comply with all applicable laws and regulations in their jurisdictions.</p>
+      </section>
+    </article>
+  );
+}
+
+function SeoSection({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <section className="mt-7 space-y-3">
+      <h3 className="text-xl font-black text-gray-900 md:text-2xl">{title}</h3>
+      {children}
+    </section>
+  );
+}
+
+function ArchiveItem({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <div className="rounded-xl border border-gray-200 bg-white p-4">
+      <h4 className="font-bold text-gray-900">{title}</h4>
+      <p className="mt-1">{children}</p>
     </div>
+  );
+}
+
+function FaqItem({ question, children }: { question: string; children: React.ReactNode }) {
+  return (
+    <details className="group py-4">
+      <summary className="cursor-pointer list-none font-bold text-gray-900 marker:hidden">
+        <span className="flex items-center justify-between gap-4">
+          {question}
+          <FiChevronDown className="shrink-0 transition-transform group-open:rotate-180" />
+        </span>
+      </summary>
+      <p className="mt-2 pr-8">{children}</p>
+    </details>
   );
 }

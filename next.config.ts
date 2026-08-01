@@ -5,14 +5,20 @@ const nextConfig: NextConfig = {
     return [
       {
         source: "/:path*",
+        has: [{ type: "host", value: "faridabadsatta.com" }],
+        destination: "https://www.faridabadsatta.com/:path*",
+        permanent: true,
+      },
+      {
+        source: "/:path*",
         has: [{ type: "host", value: "a7satta.co" }],
-        destination: "https://faridabadsatta.com/:path*",
+        destination: "https://www.faridabadsatta.com/:path*",
         permanent: true,
       },
       {
         source: "/:path*",
         has: [{ type: "host", value: "www.a7satta.co" }],
-        destination: "https://faridabadsatta.com/:path*",
+        destination: "https://www.faridabadsatta.com/:path*",
         permanent: true,
       },
     ];

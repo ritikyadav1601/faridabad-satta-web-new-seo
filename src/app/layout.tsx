@@ -26,6 +26,11 @@ export const metadata: Metadata = {
   },
   description:
     "Check Faridabad Satta results, daily charts and historical records for Faridabad, Gali, Desawar, Ghaziabad, Delhi Bazar and more markets. Updated regularly.",
+  icons: {
+    icon: [{ url: "/favicon.png", type: "image/png" }],
+    shortcut: "/favicon.png",
+    apple: "/favicon.png",
+  },
   verification: {
     google: "iwfZBGPCqdL74ht1H9V0bVgdfHVKvW-qXETMj6c7_Uk",
   },
@@ -74,14 +79,14 @@ const structuredData = {
       url: SITE_URL,
       description:
         "An independent informational platform for live result updates and historical chart records.",
-      inLanguage: ["en-IN", "hi-IN"],
+      inLanguage: "en-IN",
     },
     {
       "@type": "WebSite",
       "@id": `${SITE_URL}/#website`,
       name: SITE_NAME,
       url: SITE_URL,
-      inLanguage: ["en-IN", "hi-IN"],
+      inLanguage: "en-IN",
       publisher: { "@id": `${SITE_URL}/#organization` },
       potentialAction: {
         "@type": "ReadAction",

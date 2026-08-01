@@ -4,14 +4,35 @@ import { EMPTY_TOP_GAMES, TOP_GAME_DEFS } from "./top-games";
 import type { ChartRow, GameChartData, MonthlyChartData, SK24Game } from "./types";
 
 let clientPromise: Promise<MongoClient> | null = null;
+let mongoUnavailableUntil = 0;
+const MONGO_RETRY_DELAY_MS = 30_000;
+
+function isMongoConnectivityError(error: unknown) {
+  const details = [
+    error instanceof Error ? error.message : String(error),
+    String((error as { code?: unknown })?.code ?? ""),
+    String((error as { cause?: unknown })?.cause ?? ""),
+  ].join(" ");
+
+  return /ECONNREFUSED|ENOTFOUND|ETIMEDOUT|querySrv|server selection|MongoNetworkError|MongoServerSelectionError/i.test(details);
+}
+
+function reportMongoReadFailure(operation: string, error: unknown) {
+  // Atlas/DNS can be temporarily unavailable. All callers already provide safe
+  // fallback data, so expected connectivity failures should not be forwarded by
+  // React Server Components into the browser console as application errors.
+  if (isMongoConnectivityError(error)) return;
+  console.error(`[top-games-mongodb] Failed to ${operation}:`, error);
+}
 
 function getClient() {
   const uri = process.env.TOP_GAMES_MONGODB_URI;
-  if (!uri) return null;
+  if (!uri || Date.now() < mongoUnavailableUntil) return null;
 
   if (!clientPromise) {
     clientPromise = new MongoClient(uri, { serverSelectionTimeoutMS: 5000 }).connect();
     clientPromise.catch(() => {
+      mongoUnavailableUntil = Date.now() + MONGO_RETRY_DELAY_MS;
       clientPromise = null;
     });
   }
@@ -62,6 +83,49 @@ function topGameForSlug(slug: string) {
 
 export function isMongoTopGameSlug(slug: string) {
   return Boolean(topGameForSlug(slug));
+}
+
+export async function getTopGameAvailableYearsFromMongo(): Promise<Record<string, number[]>> {
+  const client = getClient();
+  const available: Record<string, Set<number>> = Object.fromEntries(
+    TOP_GAME_DEFS.map(({ name }) => [name.toLowerCase().replace(/\s+/g, "-"), new Set<number>()])
+  );
+  if (!client) return Object.fromEntries(Object.keys(available).map((slug) => [slug, []]));
+
+  try {
+    const db = (await client).db(process.env.TOP_GAMES_MONGODB_DB || undefined);
+    const collection = db.collection<Record<string, unknown>>(
+      process.env.TOP_GAMES_MONGODB_COLLECTION || "dailynumbers"
+    );
+    const [cityNames, rows] = await Promise.all([
+      getCityNames(db),
+      collection
+        .find({ date: { $exists: true } })
+        .project({ city: 1, game: 1, date: 1, resultDate: 1 })
+        .toArray(),
+    ]);
+
+    for (const row of rows) {
+      const rawGame = row.city ?? row.game;
+      const resolvedName = cityNames.get(String(rawGame)) ?? String(rawGame ?? "");
+      const game = TOP_GAME_DEFS.find(({ name, aliases }) => {
+        const candidates = new Set([normalise(name), ...aliases.map(normalise)]);
+        return candidates.has(normalise(resolvedName));
+      });
+      if (!game) continue;
+      const year = Number(dateKey(row.date ?? row.resultDate).slice(0, 4));
+      if (Number.isInteger(year) && year >= 2000) {
+        available[game.name.toLowerCase().replace(/\s+/g, "-")].add(year);
+      }
+    }
+
+    return Object.fromEntries(
+      Object.entries(available).map(([slug, years]) => [slug, [...years].sort((a, b) => b - a)])
+    );
+  } catch (error) {
+    reportMongoReadFailure("read available years", error);
+    return Object.fromEntries(Object.keys(available).map((slug) => [slug, []]));
+  }
 }
 
 async function getCityNames(db: ReturnType<MongoClient["db"]>) {
@@ -123,7 +187,7 @@ export async function getTopGamesFromMongo(): Promise<SK24Game[]> {
       };
     });
   } catch (error) {
-    console.error("[top-games-mongodb] Failed to read top games:", (error as Error).message);
+    reportMongoReadFailure("read top games", error);
     return EMPTY_TOP_GAMES;
   }
 }
@@ -174,7 +238,7 @@ export async function getTopGameChartFromMongo(
       scrapedAt: Date.now(),
     };
   } catch (error) {
-    console.error("[top-games-mongodb] Failed to read chart:", (error as Error).message);
+    reportMongoReadFailure("read chart", error);
     return null;
   }
 }
@@ -252,7 +316,7 @@ export async function getMonthlyChartFromMongo(
       scrapedAt: Date.now(),
     };
   } catch (error) {
-    console.error("[top-games-mongodb] Failed to read monthly chart:", (error as Error).message);
+    reportMongoReadFailure("read monthly chart", error);
     return null;
   }
 }

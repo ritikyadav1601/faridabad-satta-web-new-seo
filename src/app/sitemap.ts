@@ -35,15 +35,19 @@ const FIXED_GAME_NAMES = [
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const now = new Date();
+  const currentYear = Number(
+    new Intl.DateTimeFormat("en-US", { timeZone: "Asia/Kolkata", year: "numeric" }).format(now)
+  );
 
   // ─── Static pages ───
   const staticRoutes: MetadataRoute.Sitemap = [
     { url: `${SITE_URL}/`, lastModified: now, changeFrequency: "hourly", priority: 1 },
-    { url: `${SITE_URL}/blog`, lastModified: now, changeFrequency: "weekly", priority: 0.7 },
-    { url: `${SITE_URL}/about`, lastModified: now, changeFrequency: "monthly", priority: 0.5 },
-    { url: `${SITE_URL}/contact`, lastModified: now, changeFrequency: "monthly", priority: 0.5 },
-    { url: `${SITE_URL}/privacy`, lastModified: now, changeFrequency: "yearly", priority: 0.3 },
-    { url: `${SITE_URL}/disclaimer`, lastModified: now, changeFrequency: "yearly", priority: 0.3 },
+    { url: `${SITE_URL}/charts`, lastModified: now, changeFrequency: "daily", priority: 0.9 },
+    { url: `${SITE_URL}/blog`, changeFrequency: "weekly", priority: 0.7 },
+    { url: `${SITE_URL}/about`, changeFrequency: "monthly", priority: 0.5 },
+    { url: `${SITE_URL}/contact`, changeFrequency: "monthly", priority: 0.5 },
+    { url: `${SITE_URL}/privacy`, changeFrequency: "yearly", priority: 0.3 },
+    { url: `${SITE_URL}/disclaimer`, changeFrequency: "yearly", priority: 0.3 },
   ];
 
   // ─── Blog posts ───
@@ -87,5 +91,20 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.8,
     }));
 
-  return [...staticRoutes, ...blogRoutes, ...chartRoutes];
+  // The year archive UI supports the documented 2015–current-year range for
+  // every promoted game. Include these crawlable archive URLs explicitly.
+  const archiveYears = Array.from(
+    { length: Math.max(0, currentYear - 2015 + 1) },
+    (_, index) => currentYear - index
+  );
+  const yearlyChartRoutes: MetadataRoute.Sitemap = TOP_GAME_DEFS.flatMap((game) => {
+    const slug = toSlug(game.name);
+    return archiveYears.map((year) => ({
+      url: `${SITE_URL}/charts/${slug}/${year}`,
+      changeFrequency: year === currentYear ? "daily" as const : "yearly" as const,
+      priority: year === currentYear ? 0.75 : 0.55,
+    }));
+  });
+
+  return [...staticRoutes, ...blogRoutes, ...chartRoutes, ...yearlyChartRoutes];
 }
