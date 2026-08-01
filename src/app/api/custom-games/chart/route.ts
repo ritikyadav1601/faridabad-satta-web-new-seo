@@ -1,5 +1,6 @@
 import { NextRequest } from "next/server";
 import { getAdminDb } from "@/lib/firebase-admin";
+import { CHART_CACHE_HEADERS, memGet, memSet } from "@/lib/api-helpers";
 
 const COLLECTION = "custom_games";
 
@@ -12,6 +13,12 @@ export async function GET(req: NextRequest) {
 
   if (!game) {
     return Response.json({ success: false, error: "game is required" }, { status: 400 });
+  }
+
+  const cacheKey = `custom-chart:${game}:${year}:${month}`;
+  const cached = memGet<Record<string, unknown>>(cacheKey);
+  if (cached) {
+    return Response.json(cached, { headers: CHART_CACHE_HEADERS });
   }
 
   try {
@@ -59,7 +66,7 @@ export async function GET(req: NextRequest) {
       "July", "August", "September", "October", "November", "December",
     ];
 
-    return Response.json({
+    const payload = {
       success: true,
       gameName: game.replace(/-/g, " ").toUpperCase(),
       chartTitle: `${game.replace(/-/g, " ").toUpperCase()} - ${monthNames[month - 1]} ${year}`,
@@ -67,7 +74,9 @@ export async function GET(req: NextRequest) {
       year: String(year),
       columns: ["Date", "Day", "Result"],
       results,
-    });
+    };
+    memSet(cacheKey, payload, 300);
+    return Response.json(payload, { headers: CHART_CACHE_HEADERS });
   } catch (error) {
     return Response.json(
       { success: false, error: (error as Error).message },

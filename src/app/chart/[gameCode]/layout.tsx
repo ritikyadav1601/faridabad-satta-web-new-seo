@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { notFound } from "next/navigation";
 import { SITE_URL } from "@/lib/site";
 
 // Per-game SEO metadata for chart pages, keyed by URL slug (gameCode).
@@ -37,11 +38,6 @@ const CHART_META: Record<string, { title: string; description: string }> = {
     title: "Choti Gali Satta King Chart",
     description:
       "Find Choti Gali Satta King chart, live results, old charts, and historical records updated daily.",
-  },
-  "🎀-show-your-game-here-🎀": {
-    title: "Show Your Game Here Chart",
-    description:
-      "Explore the Show Your Game Here chart with updated records and daily results on Faridabad Satta.",
   },
   desawer: {
     title: "Desawer Satta King Chart",
@@ -184,10 +180,40 @@ export async function generateMetadata({
   };
 }
 
-export default function ChartLayout({
+function isJunkGameCode(gameCode: string): boolean {
+  return gameCode.toLowerCase().replace(/[^a-z0-9]/g, "") === "showyourgamehere";
+}
+
+export default async function ChartLayout({
   children,
+  params,
 }: {
   children: React.ReactNode;
+  params: Promise<{ gameCode: string }>;
 }) {
-  return children;
+  const { gameCode } = await params;
+  if (isJunkGameCode(gameCode)) notFound();
+
+  const canonicalCode = canonicalGameCode(gameCode);
+  const name = titleCase(canonicalCode);
+  const url = `${SITE_URL}/chart/${encodeURIComponent(canonicalCode)}`;
+  const breadcrumbData = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "Home", item: SITE_URL },
+      { "@type": "ListItem", position: 2, name: "Charts", item: `${SITE_URL}/charts` },
+      { "@type": "ListItem", position: 3, name: `${name} Chart`, item: url },
+    ],
+  };
+
+  return (
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbData) }}
+      />
+      {children}
+    </>
+  );
 }

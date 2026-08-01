@@ -5,7 +5,10 @@ import type { ChartRow, GameChartData, MonthlyChartData, SK24Game } from "./type
 
 let clientPromise: Promise<MongoClient> | null = null;
 let mongoUnavailableUntil = 0;
+let cityNamesCache: { data: Map<string, string>; expiresAt: number } | null = null;
+let cityNamesPromise: Promise<Map<string, string>> | null = null;
 const MONGO_RETRY_DELAY_MS = 30_000;
+const CITY_CACHE_TTL_MS = 6 * 60 * 60 * 1000;
 
 function isMongoConnectivityError(error: unknown) {
   const details = [
@@ -129,12 +132,25 @@ export async function getTopGameAvailableYearsFromMongo(): Promise<Record<string
 }
 
 async function getCityNames(db: ReturnType<MongoClient["db"]>) {
-  const cities = await db
-    .collection<Record<string, unknown>>("cities")
-    .find({})
-    .project({ name: 1, cityName: 1 })
-    .toArray();
-  return new Map(cities.map((city) => [String(city._id), String(city.name ?? city.cityName ?? "")]));
+  if (cityNamesCache && cityNamesCache.expiresAt > Date.now()) return cityNamesCache.data;
+  if (!cityNamesPromise) {
+    cityNamesPromise = db
+      .collection<Record<string, unknown>>("cities")
+      .find({})
+      .project({ name: 1, cityName: 1 })
+      .toArray()
+      .then((cities) => {
+        const data = new Map(
+          cities.map((city) => [String(city._id), String(city.name ?? city.cityName ?? "")])
+        );
+        cityNamesCache = { data, expiresAt: Date.now() + CITY_CACHE_TTL_MS };
+        return data;
+      })
+      .finally(() => {
+        cityNamesPromise = null;
+      });
+  }
+  return cityNamesPromise;
 }
 
 /**
@@ -239,6 +255,47 @@ export async function getTopGameChartFromMongo(
     };
   } catch (error) {
     reportMongoReadFailure("read chart", error);
+    return null;
+  }
+}
+
+/** Read a complete year for one promoted game with a single MongoDB query. */
+export async function getTopGameYearChartFromMongo(
+  slug: string,
+  year: number
+): Promise<Record<number, Record<number, string>> | null> {
+  const game = topGameForSlug(slug);
+  const client = getClient();
+  if (!game || !client || !Number.isInteger(year)) return null;
+
+  try {
+    const db = (await client).db(process.env.TOP_GAMES_MONGODB_DB || undefined);
+    const start = new Date(`${year}-01-01T00:00:00+05:30`);
+    const end = new Date(`${year + 1}-01-01T00:00:00+05:30`);
+    const [cityNames, rows] = await Promise.all([
+      getCityNames(db),
+      db.collection<Record<string, unknown>>(process.env.TOP_GAMES_MONGODB_COLLECTION || "dailynumbers")
+        .find({ date: { $gte: start, $lt: end } })
+        .sort({ date: 1 })
+        .toArray(),
+    ]);
+    const gameNames = new Set([normalise(game.name), ...game.aliases.map(normalise)]);
+    const months: Record<number, Record<number, string>> = {};
+
+    for (const row of rows) {
+      const rawGame = row.city ?? row.game;
+      const resolvedName = cityNames.get(String(rawGame)) ?? String(rawGame ?? "");
+      if (!gameNames.has(normalise(resolvedName))) continue;
+      const date = dateKey(row.date ?? row.resultDate);
+      const monthIndex = Number(date.slice(5, 7)) - 1;
+      const day = Number(date.slice(8, 10));
+      if (monthIndex < 0 || monthIndex > 11 || day < 1 || day > 31) continue;
+      (months[monthIndex] ||= {})[day] = resultValue(row);
+    }
+
+    return months;
+  } catch (error) {
+    reportMongoReadFailure("read yearly chart", error);
     return null;
   }
 }

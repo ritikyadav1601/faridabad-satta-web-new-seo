@@ -8,14 +8,14 @@ export function generateMetadata(): Metadata {
   }).format(new Date());
 
   return {
-    title: `Satta King Charts ${year} | Faridabad Chart, Gali, Desawar, Ghaziabad & Old Records`,
-    description: `Browse the latest Satta King Charts and old yearly records for Faridabad, Desawar, Delhi Bazar, Ghaziabad, Gali, Shri Ganesh, and other games. View organized chart archives from 2015 to ${year} with easy navigation.`,
+    title: `Satta King Charts ${year} | Old Records`,
+    description: `Browse ${year} and old Satta King charts for Faridabad, Desawar, Delhi Bazar, Ghaziabad, Gali and Shri Ganesh by game and year.`,
     alternates: { canonical: `${SITE_URL}/charts` },
     openGraph: {
       type: "website",
       url: `${SITE_URL}/charts`,
-      title: `Satta King Charts ${year} | Faridabad, Gali, Desawar & Old Records`,
-      description: `Browse organized Satta King chart archives and yearly records from 2015 to ${year}.`,
+      title: `Satta King Charts ${year} | Old Records`,
+      description: `Browse organized Satta King chart archives and yearly records through ${year}.`,
     },
   };
 }

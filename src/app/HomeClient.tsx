@@ -92,16 +92,18 @@ export default function HomeClient({ initialData }: { initialData: HomeData }) {
   // The server provides the first render. Keeping these as props (instead of
   // one-time state) lets router.refresh() render the newly saved DB values.
   const router = useRouter();
-  const liveResults = initialData.liveResults;
-  const nextResults = initialData.nextResults;
-  const restResults = initialData.restResults;
-  const sk24Games = initialData.sk24Games;
+  const isJunkGame = (name: string) =>
+    name.toLowerCase().replace(/[^a-z0-9]/g, "") === "showyourgamehere";
+  const liveResults = initialData.liveResults.filter((game) => !isJunkGame(game.name));
+  const nextResults = initialData.nextResults.filter((game) => !isJunkGame(game.name));
+  const restResults = initialData.restResults.filter((game) => !isJunkGame(game.name));
+  const sk24Games = initialData.sk24Games.filter((game) => !isJunkGame(game.name));
   const sk24Charts = initialData.sk24Charts;
   const monthlyChart = initialData.monthlyChart;
   const monthlyChartMeta = initialData.monthlyChartMeta;
   const customGames = initialData.customGames;
   const customGamesYesterday = initialData.customGamesYesterday;
-  const mongoTopGames = initialData.mongoTopGames;
+  const mongoTopGames = initialData.mongoTopGames.filter((game) => !isJunkGame(game.name));
   const loading = false;
   const khaiwal = initialData.khaiwal;
 
@@ -241,8 +243,9 @@ export default function HomeClient({ initialData }: { initialData: HomeData }) {
       <div className="site-hero px-3 py-8 text-center text-slate-900 md:px-4 md:py-12">
        
         <h1 className="mb-2 text-3xl font-black tracking-[-0.04em] sm:text-4xl md:text-5xl">
-          Faridabad Satta {format(new Date(), "yyyy")}
+          Faridabad Satta King Result Today
         </h1>
+        <p className="text-sm font-bold text-slate-600">Daily results and charts • {format(new Date(), "yyyy")}</p>
       
         <div className="mt-4 inline-flex items-center gap-2 rounded-full border border-slate-200 bg-slate-50 px-4 py-2 font-mono text-xs font-bold tabular-nums text-slate-700 sm:text-sm">
           <span className="w-2 h-2 bg-amber-300 rounded-full animate-live-pulse" />
@@ -324,9 +327,8 @@ export default function HomeClient({ initialData }: { initialData: HomeData }) {
               lang={lang}
             />
 
-                {/* ─── 3TH SECTION: WhatsApp / Khaiwal ─── */}
-                <WhatsAppContactSection lang={lang} khaiwal={khaiwal} />
-                <ChannelFollowSection lang={lang} />
+            <WhatsAppContactSection lang={lang} khaiwal={khaiwal} />
+            <ChannelFollowSection lang={lang} />
 
             {/* ─── 4TH SECTION: Former top games and other games ─── */}
            <GameCardSection
@@ -710,134 +712,80 @@ function SK24ChartsSection({ tables, lang }: { tables: SK24ChartTable[]; lang: "
 }
 
 
-function WhatsAppContactSection({ lang, khaiwal }: any) {
-  const phone =  "917355847700";
-  const name =  "Har Har Mahadev";
-
+function WhatsAppContactSection({
+  lang,
+  khaiwal,
+}: {
+  lang: "hi" | "en";
+  khaiwal: { name: string; whatsapp: string } | null;
+}) {
+  const phone = khaiwal?.whatsapp || "917355847700";
+  const name = khaiwal?.name || "Har Har Mahadev";
   const games = [
-    { name: t("शिव गंगा", "Shiv Ganga", lang), time: "12:15 PM" },
-    { name: t("सबर बाजार", "Sabar Bazar", lang), time: "1:15 PM" },
-    { name: t("अलीनगर", "Alinagar", lang), time: "2:15 PM" },
-    { name: t("दिल्ली बाज़ार", "Delhi Bazar", lang), time: "2:50 PM" },
-    { name: t("श्री गणेश", "Shri Ganesh", lang), time: "4:20 PM" },
-    { name: t("फतेहाबाद सिटी", "Fatehabad City", lang), time: "5:20 PM" },
-    { name: t("फरीदाबाद", "Faridabad", lang), time: "5:30 PM" },
-    { name: t("मुल्तान बाज़ार", "Multan Bazar", lang), time: "7:20 PM" },
-    { name: t("गाज़ियाबाद", "Ghaziabad", lang), time: "8:40 PM" },
-    { name: t("कल्याणपुरी", "Kalyanpuri", lang), time: "10:10 PM" },
-    { name: t("गली", "Gali", lang), time: "11:20 PM" },
-    { name: t("दिसावर", "Disawar", lang), time: "1:30 AM" },
+    ["शिव गंगा", "Shiv Ganga", "12:15 PM"],
+    ["सबर बाजार", "Sabar Bazar", "1:15 PM"],
+    ["अलीनगर", "Alinagar", "2:15 PM"],
+    ["दिल्ली बाज़ार", "Delhi Bazar", "2:50 PM"],
+    ["श्री गणेश", "Shri Ganesh", "4:20 PM"],
+    ["फतेहाबाद सिटी", "Fatehabad City", "5:20 PM"],
+    ["फरीदाबाद", "Faridabad", "5:30 PM"],
+    ["मुल्तान बाज़ार", "Multan Bazar", "7:20 PM"],
+    ["गाज़ियाबाद", "Ghaziabad", "8:40 PM"],
+    ["कल्याणपुरी", "Kalyanpuri", "10:10 PM"],
+    ["गली", "Gali", "11:20 PM"],
+    ["दिसावर", "Disawar", "1:30 AM"],
   ];
 
   return (
     <section className="sa opacity-0 translate-y-8">
-      <div className="relative overflow-hidden rounded-3xl border-4 border-dashed border-red-500 bg-gradient-to-b from-yellow-300 via-yellow-100 to-white shadow-xl">
-
-        {/* Top Header */}
-        <div className="text-center px-4 pt-6 pb-3">
-          <p className="text-lg md:text-xl font-black text-gray-900">
-            ⭐ Direct Company No.1 Khaiwal ⭐
-          </p>
-
-          <h2 className="mt-3 text-2xl md:text-4xl font-black text-[#1a1a2e]">
-
-            {name}
-          </h2>
+      <div className="overflow-hidden rounded-3xl border-4 border-dashed border-red-500 bg-gradient-to-b from-yellow-300 via-yellow-100 to-white shadow-xl">
+        <div className="px-4 pb-3 pt-6 text-center">
+          <p className="text-lg font-black text-gray-900 md:text-xl">⭐ Direct Company No.1 Khaiwal ⭐</p>
+          <h2 className="mt-3 text-2xl font-black text-[#1a1a2e] md:text-4xl">{name}</h2>
         </div>
 
-        {/* Timing List */}
-        <div className="max-w-xl mx-auto px-4 pb-5">
-          <div className="bg-white/60 backdrop-blur rounded-2xl border-2 border-yellow-500 p-4">
-
-            {games.map((game) => (
-              <div
-                key={game.name}
-                className="flex items-center justify-between py-2 border-b border-dashed border-gray-400 last:border-0"
-              >
+        <div className="mx-auto max-w-xl px-4 pb-5">
+          <div className="rounded-2xl border-2 border-yellow-500 bg-white/60 p-4 backdrop-blur">
+            {games.map(([hiName, enName, time]) => (
+              <div key={enName} className="flex items-center justify-between border-b border-dashed border-gray-400 py-2 last:border-0">
                 <div className="flex items-center gap-2 font-bold text-gray-800">
                   <span className="text-xl">⏰</span>
-                  <span>{game.name}</span>
+                  <span>{t(hiName, enName, lang)}</span>
                 </div>
-
-                <span className="font-black text-[#1a1a2e]">
-                  {game.time}
-                </span>
+                <span className="font-black text-[#1a1a2e]">{time}</span>
               </div>
             ))}
           </div>
         </div>
 
-        {/* Rates */}
-        <div className="grid grid-cols-2 gap-3 px-4 max-w-md mx-auto">
-          <div className="bg-white border-2 border-yellow-500 rounded-2xl p-3 text-center">
-            <p className="text-xs font-bold text-gray-500 uppercase">
-              Jodi Rate
-            </p>
-            <p className="text-2xl font-black text-blue-700">
-              10-960
-            </p>
+        <div className="mx-auto grid max-w-md grid-cols-2 gap-3 px-4">
+          <div className="rounded-2xl border-2 border-yellow-500 bg-white p-3 text-center">
+            <p className="text-xs font-bold uppercase text-gray-500">Jodi Rate</p>
+            <p className="text-2xl font-black text-blue-700">10-960</p>
           </div>
-
-          <div className="bg-white border-2 border-yellow-500 rounded-2xl p-3 text-center">
-            <p className="text-xs font-bold text-gray-500 uppercase">
-              Haruf Rate
-            </p>
-            <p className="text-2xl font-black text-blue-700">
-              100-960
-            </p>
+          <div className="rounded-2xl border-2 border-yellow-500 bg-white p-3 text-center">
+            <p className="text-xs font-bold uppercase text-gray-500">Haruf Rate</p>
+            <p className="text-2xl font-black text-blue-700">100-960</p>
           </div>
         </div>
 
-        {/* Payment */}
-        <div className="text-center px-4 py-5">
-          <p className="font-bold text-gray-700 text-sm">
-            PAYTM • PHONEPE • GOOGLE PAY • BANK TRANSFER
-          </p>
-
-          <p className="mt-2 text-sm font-semibold text-red-600">
-            PhonePe, GooglePay & Paytm Scanner Available
-          </p>
+        <div className="px-4 py-5 text-center">
+          <p className="text-sm font-bold text-gray-700">PAYTM • PHONEPE • GOOGLE PAY • BANK TRANSFER</p>
+          <p className="mt-2 text-sm font-semibold text-red-600">PhonePe, GooglePay & Paytm Scanner Available</p>
+          <a href={`tel:+${phone}`} className="mt-4 inline-block border-b-4 border-blue-700 text-3xl font-black text-blue-700 md:text-4xl">+{phone}</a>
+          <p className="mt-5 text-xl font-black text-[#1a1a2e] md:text-2xl">😊😊 {name} 😊😊</p>
+          <p className="mt-2 text-sm font-bold text-gray-700 md:text-base">Game play karne ke liye niche link par click kare</p>
         </div>
 
-        {/* Phone */}
-        <div className="text-center px-4">
+        <div className="flex justify-center px-4 pb-8">
           <a
-            href={`tel:+917355847700`}
-            className="inline-block text-3xl md:text-4xl font-black text-blue-700 border-b-4 border-blue-700"
-          >
-            +{phone}
-          </a>
-        </div>
-
-        {/* Footer Text */}
-        <div className="text-center px-4 pt-5">
-          <p className="font-black text-xl md:text-2xl text-[#1a1a2e]">
-            😊😊Har Har Mahadev 😊😊
-          </p>
-
-          <p className="mt-2 text-sm md:text-base font-bold text-gray-700">
-            Game play karne ke liye niche link par click kare
-          </p>
-        </div>
-
-        {/* WhatsApp Button */}
-        <div className="px-4 pb-8 pt-5 flex justify-center">
-          <a
-           href={`https://wa.me/+917355847700?text=${encodeURIComponent("FARIDABAD SATTA")}`}
+            href={`https://wa.me/${phone.replace(/\D/g, "")}?text=${encodeURIComponent("FARIDABAD SATTA")}`}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center gap-4 bg-green-500 hover:bg-green-600 text-white px-8 py-4 rounded-full font-black text-lg shadow-lg hover:scale-105 transition-all"
+            className="flex items-center gap-4 rounded-full bg-green-500 px-8 py-4 text-lg font-black text-white shadow-lg transition-all hover:scale-105 hover:bg-green-600"
           >
             <FaWhatsapp className="text-4xl" />
-
-            <div className="text-left">
-              <div className="text-xl leading-none">
-                WhatsApp
-              </div>
-              <div className="text-sm opacity-90">
-                Click To Chat
-              </div>
-            </div>
+            <span>WhatsApp<br /><small className="text-sm opacity-90">Click To Chat</small></span>
           </a>
         </div>
       </div>

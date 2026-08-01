@@ -1,21 +1,10 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { WhatsAppButton } from "@/components/layout/WhatsAppButton";
 import { LanguageProvider } from "@/context/LanguageContext";
 import { SITE_NAME, SITE_URL } from "@/lib/site";
-
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
@@ -35,20 +24,6 @@ export const metadata: Metadata = {
     google: "iwfZBGPCqdL74ht1H9V0bVgdfHVKvW-qXETMj6c7_Uk",
   },
 
-  keywords: [
-    "satta king result",
-    "satta king",
-    "satta result",
-    "gali result",
-    "desawar result",
-    "satta king 2026",
-    "satta king live",
-    "live satta result",
-    "satta online result",
-    "faridabad satta",
-    "faridabad satta result",
-    "faridabad satta chart",
-  ],
   openGraph: {
     type: "website",
     locale: "en_IN",
@@ -104,7 +79,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className="h-full antialiased"
     >
       <head>
         <script

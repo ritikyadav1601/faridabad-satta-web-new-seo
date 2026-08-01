@@ -1,29 +1,7 @@
-"use client";
-
-import { useEffect, useState } from "react";
 import { FaWhatsapp } from "react-icons/fa";
 import { getWhatsAppLink } from "@/lib/utils";
 
 export function WhatsAppButton() {
-  const [phone, setPhone] = useState("918901302607");
-
-  useEffect(() => {
-    const fetchKhaiwal = async () => {
-      try {
-        const res = await fetch("/api/custom-games");
-        const data = await res.json();
-
-        if (data?.khaiwal?.whatsapp) {
-          setPhone(data.khaiwal.whatsapp);
-        }
-      } catch (err) {
-        console.log("khaiwal fetch error", err);
-      }
-    };
-
-    fetchKhaiwal();
-  }, []);
-
   return (
     <div className="fixed bottom-4 right-3 md:bottom-6 md:right-6 z-50 flex flex-col items-center gap-2.5">
       

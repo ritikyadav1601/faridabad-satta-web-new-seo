@@ -4,19 +4,7 @@ import Link from "next/link";
 import { use, useEffect, useState } from "react";
 import { FiBarChart2, FiChevronLeft } from "react-icons/fi";
 
-const MONTHS = [
-  "january", "february", "march", "april", "may", "june",
-  "july", "august", "september", "october", "november", "december",
-];
 const MONTH_LABELS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-
-interface ResultRow { date: string; result: string }
-
-function dayFromDate(value: string) {
-  if (/^\d{1,2}$/.test(value)) return Number(value);
-  const date = new Date(value);
-  return Number.isNaN(date.getTime()) ? 0 : date.getDate();
-}
 
 export default function YearChartPage({ params }: { params: Promise<{ gameCode: string; year: string }> }) {
   const { gameCode, year } = use(params);
@@ -27,35 +15,30 @@ export default function YearChartPage({ params }: { params: Promise<{ gameCode: 
   useEffect(() => {
     let cancelled = false;
     setLoading(true);
-    Promise.all(
-      MONTHS.map(async (month, monthIndex) => {
-        try {
-          const response = await fetch(`/api/game-chart?slug=${gameCode}&month=${month}&year=${year}`);
-          const data = await response.json();
-          const byDay: Record<number, string> = {};
-          if (data.success && Array.isArray(data.results)) {
-            data.results.forEach((row: ResultRow) => {
-              const day = dayFromDate(row.date);
-              if (day) byDay[day] = row.result || "XX";
-            });
-          }
-          return [monthIndex, byDay] as const;
-        } catch {
-          return [monthIndex, {}] as const;
-        }
+    fetch(`/api/year-chart?slug=${gameCode}&year=${year}`)
+      .then((response) => response.json())
+      .then((data) => {
+        if (!cancelled && data.success) setMonths(data.months || {});
       })
-    ).then((entries) => {
-      if (!cancelled) {
-        setMonths(Object.fromEntries(entries));
-        setLoading(false);
-      }
-    });
+      .catch(() => {})
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
     return () => { cancelled = true; };
   }, [gameCode, year]);
 
   return (
     <main className="min-h-screen bg-[var(--surface-page)] px-2.5 py-5 md:px-5 md:py-7">
       <div className="mx-auto max-w-7xl">
+        <nav aria-label="Breadcrumb" className="mb-4 text-xs text-slate-500">
+          <ol className="flex flex-wrap items-center gap-2">
+            <li><Link href="/" className="hover:text-indigo-700">Home</Link></li>
+            <li aria-hidden="true">/</li>
+            <li><Link href="/charts" className="hover:text-indigo-700">Charts</Link></li>
+            <li aria-hidden="true">/</li>
+            <li aria-current="page" className="font-semibold text-slate-800">{gameName} {year}</li>
+          </ol>
+        </nav>
         <header className="mb-4 text-center">
           <span className="inline-flex items-center gap-1.5 rounded-full border border-indigo-100 bg-indigo-50 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-indigo-700">
             <FiBarChart2 /> Full year chart

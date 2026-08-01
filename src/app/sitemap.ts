@@ -3,7 +3,6 @@ import {
   getHomepageFromFirestore,
   getSK24GamesFromFirestore,
 } from "@/lib/firebase-cache";
-import { BLOG_POSTS } from "@/lib/blog-data";
 import { SITE_URL } from "@/lib/site";
 import { TOP_GAME_DEFS } from "@/lib/top-games";
 
@@ -27,6 +26,10 @@ function toSlug(name: string): string {
   return aliases[slug] || slug;
 }
 
+function isJunkSlug(slug: string): boolean {
+  return slug.replace(/[^a-z0-9]/g, "") === "showyourgamehere";
+}
+
 // Games that always exist on the homepage, regardless of what Firestore returns.
 const FIXED_GAME_NAMES = [
   ...TOP_GAME_DEFS.map((game) => game.name),
@@ -43,20 +46,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const staticRoutes: MetadataRoute.Sitemap = [
     { url: `${SITE_URL}/`, lastModified: now, changeFrequency: "hourly", priority: 1 },
     { url: `${SITE_URL}/charts`, lastModified: now, changeFrequency: "daily", priority: 0.9 },
-    { url: `${SITE_URL}/blog`, changeFrequency: "weekly", priority: 0.7 },
     { url: `${SITE_URL}/about`, changeFrequency: "monthly", priority: 0.5 },
     { url: `${SITE_URL}/contact`, changeFrequency: "monthly", priority: 0.5 },
     { url: `${SITE_URL}/privacy`, changeFrequency: "yearly", priority: 0.3 },
     { url: `${SITE_URL}/disclaimer`, changeFrequency: "yearly", priority: 0.3 },
   ];
-
-  // ─── Blog posts ───
-  const blogRoutes: MetadataRoute.Sitemap = BLOG_POSTS.map((post) => ({
-    url: `${SITE_URL}/blog/${post.slug}`,
-    lastModified: post.date ? new Date(post.date) : now,
-    changeFrequency: "monthly",
-    priority: 0.6,
-  }));
 
   // ─── Chart pages (one per game) ───
   // Pull live game names from Firestore, then merge with the fixed lists so the
@@ -83,7 +77,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   }
 
   const chartRoutes: MetadataRoute.Sitemap = Array.from(slugs)
-    .filter(Boolean)
+    .filter((slug) => Boolean(slug) && !isJunkSlug(slug))
     .map((slug) => ({
       url: `${SITE_URL}/chart/${slug}`,
       lastModified: now,
@@ -106,5 +100,5 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     }));
   });
 
-  return [...staticRoutes, ...blogRoutes, ...chartRoutes, ...yearlyChartRoutes];
+  return [...staticRoutes, ...chartRoutes, ...yearlyChartRoutes];
 }

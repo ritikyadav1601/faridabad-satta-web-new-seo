@@ -108,28 +108,14 @@ export default function GameChartPage({
   useEffect(() => {
     const findTime = async () => {
       try {
-        const endpoints = ["/api/live-results", "/api/next-results", "/api/rest-results"];
-        for (const url of endpoints) {
-          const res = await fetch(url);
-          const data = await res.json();
-          if (data.success) {
-            const found = data.results?.find(
-              (g: { name: string }) => g.name.toLowerCase().replace(/\s+/g, "-") === gameCode
-            );
-            if (found) {
-              setResultTime(found.time);
-              return;
-            }
-          }
-        }
-        const sk24Res = await fetch("/api/sattaking24");
-        const sk24Data = await sk24Res.json();
-        if (sk24Data.success) {
-          const found = sk24Data.games?.find(
-            (g: { name: string }) => g.name.toLowerCase().replace(/\s+/g, "-") === gameCode
-          );
-          if (found) setResultTime(found.time);
-        }
+        const endpoints = ["/api/live-results", "/api/next-results", "/api/rest-results", "/api/sattaking24"];
+        const responses = await Promise.all(endpoints.map((url) => fetch(url)));
+        const payloads = await Promise.all(responses.map((response) => response.json()));
+        const games = payloads.flatMap((data) => data.results || data.games || []);
+        const found = games.find(
+          (game: { name: string }) => game.name.toLowerCase().replace(/\s+/g, "-") === gameCode
+        );
+        if (found) setResultTime(found.time);
       } catch { /* ignore */ }
     };
     findTime();
@@ -152,6 +138,15 @@ export default function GameChartPage({
   return (
     <div className="bg-white min-h-screen">
       <div className="max-w-5xl mx-auto px-3 md:px-4 py-6 md:py-10">
+        <nav aria-label="Breadcrumb" className="mb-5 text-sm text-gray-500">
+          <ol className="flex flex-wrap items-center gap-2">
+            <li><Link href="/" className="hover:text-blue-700">Home</Link></li>
+            <li aria-hidden="true">/</li>
+            <li><Link href="/charts" className="hover:text-blue-700">Charts</Link></li>
+            <li aria-hidden="true">/</li>
+            <li aria-current="page" className="font-semibold text-gray-800">{gameName}</li>
+          </ol>
+        </nav>
         {/* Header */}
         <div className="text-center mb-6">
           <div className="inline-flex items-center gap-2 bg-gray-100 rounded-full px-4 py-1.5 mb-3">

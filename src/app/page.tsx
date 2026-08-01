@@ -1,6 +1,8 @@
 import HomeClient from "./HomeClient";
 import { getHomeData } from "@/lib/home-data";
 import type { Metadata } from "next";
+import { unstable_cache } from "next/cache";
+import { SITE_URL } from "@/lib/site";
 
 export function generateMetadata(): Metadata {
   const today = new Intl.DateTimeFormat("en-GB", {
@@ -10,19 +12,29 @@ export function generateMetadata(): Metadata {
     year: "numeric",
   }).format(new Date());
 
+  const title = `Satta King Today ${today} | Faridabad`;
+  const description =
+    "Check today's Faridabad Satta King result plus Gali, Ghaziabad, Delhi Bazar and Desawar updates, daily charts and old records.";
+
   return {
-    title: `Satta King Result Today ${today} | Faridabad Satta Result & All Game Updates`,
-    description:
-      "Check the latest satta king result today along with faridabad satta updates, Delhi Bazar, Ghaziabad, Gali, Disawar, and All Game Satta records. Find daily charts, historical archives, and regularly updated regional result information.",
+    title: { absolute: title },
+    description,
+    alternates: { canonical: SITE_URL },
+    openGraph: { type: "website", url: SITE_URL, title, description },
+    twitter: { card: "summary", title, description },
   };
 }
 
-// Results are database-backed and must reflect a newly saved value on the next
-// browser refresh. Client-side refreshes are triggered every 20 seconds.
-export const dynamic = "force-dynamic";
-export const revalidate = 0;
+// Cache the expensive Firestore/MongoDB aggregation briefly. The client still
+// refreshes every 20 seconds, while repeat requests can use a fast server cache.
+const getCachedHomeData = unstable_cache(getHomeData, ["homepage-data"], {
+  revalidate: 20,
+  tags: ["homepage-data"],
+});
+
+export const revalidate = 20;
 
 export default async function HomePage() {
-  const initialData = await getHomeData();
+  const initialData = await getCachedHomeData();
   return <HomeClient initialData={initialData} />;
 }

@@ -2,8 +2,15 @@ import Link from "next/link";
 import { FiChevronDown, FiChevronRight } from "react-icons/fi";
 import { TOP_GAME_DEFS } from "@/lib/top-games";
 import { getTopGameAvailableYearsFromMongo } from "@/lib/top-games-mongodb";
+import { unstable_cache } from "next/cache";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 21600;
+
+const getCachedAvailableYears = unstable_cache(
+  getTopGameAvailableYearsFromMongo,
+  ["top-game-available-years"],
+  { revalidate: 21600, tags: ["top-game-available-years"] }
+);
 
 const MAIN_GAME_SLUGS = [
   "deshawer",
@@ -21,7 +28,7 @@ export default async function ChartsPage() {
     timeZone: "Asia/Kolkata",
     year: "numeric",
   }).format(new Date());
-  const availableYears = await getTopGameAvailableYearsFromMongo();
+  const availableYears = await getCachedAvailableYears();
   const games = TOP_GAME_DEFS.map(({ name, time }) => ({ name, time, slug: slugFor(name) }));
   const mainGames = MAIN_GAME_SLUGS
     .map((slug) => games.find((game) => game.slug === slug))
