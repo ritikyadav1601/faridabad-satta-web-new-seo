@@ -5,6 +5,7 @@ import {
 } from "@/lib/firebase-cache";
 import { SITE_URL } from "@/lib/site";
 import { TOP_GAME_DEFS } from "@/lib/top-games";
+import { getTopGameAvailableYearsFromMongo } from "@/lib/top-games-mongodb";
 
 // Refresh the sitemap at most every hour.
 export const revalidate = 3600;
@@ -38,10 +39,6 @@ const FIXED_GAME_NAMES = [
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const now = new Date();
-  const currentYear = Number(
-    new Intl.DateTimeFormat("en-US", { timeZone: "Asia/Kolkata", year: "numeric" }).format(now)
-  );
-
   // ─── Static pages ───
   const staticRoutes: MetadataRoute.Sitemap = [
     { url: `${SITE_URL}/`, lastModified: now, changeFrequency: "hourly", priority: 1 },
@@ -80,20 +77,21 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     .filter((slug) => Boolean(slug) && !isJunkSlug(slug))
     .map((slug) => ({
       url: `${SITE_URL}/chart/${slug}`,
-      lastModified: now,
       changeFrequency: "daily",
       priority: 0.8,
     }));
 
-  // The year archive UI supports the documented 2015–current-year range for
-  // every promoted game. Include these crawlable archive URLs explicitly.
-  const archiveYears = Array.from(
-    { length: Math.max(0, currentYear - 2015 + 1) },
-    (_, index) => currentYear - index
+  // Publish only archive pages backed by real records. Advertising every year
+  // for every game creates empty, thin URLs and wastes search-engine crawl
+  // budget. If Mongo is temporarily unavailable, omit these routes until the
+  // next hourly sitemap refresh instead of publishing false URLs.
+  const availableYears = await getTopGameAvailableYearsFromMongo();
+  const currentYear = Number(
+    new Intl.DateTimeFormat("en-US", { timeZone: "Asia/Kolkata", year: "numeric" }).format(now)
   );
   const yearlyChartRoutes: MetadataRoute.Sitemap = TOP_GAME_DEFS.flatMap((game) => {
     const slug = toSlug(game.name);
-    return archiveYears.map((year) => ({
+    return (availableYears[slug] || []).map((year) => ({
       url: `${SITE_URL}/charts/${slug}/${year}`,
       changeFrequency: year === currentYear ? "daily" as const : "yearly" as const,
       priority: year === currentYear ? 0.75 : 0.55,

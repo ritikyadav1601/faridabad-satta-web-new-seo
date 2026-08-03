@@ -6,7 +6,15 @@ export default function robots(): MetadataRoute.Robots {
     rules: [
       {
         userAgent: "*",
-        allow: "/",
+        // Chart pages hydrate their result tables from these read-only routes.
+        // Their longer Allow paths override the general /api/ block so search
+        // engine renderers can see the same chart content as visitors.
+        allow: [
+          "/",
+          "/api/game-chart",
+          "/api/year-chart",
+          "/api/custom-games/chart",
+        ],
         disallow: ["/api/", "/add-game-value"],
       },
     ],
