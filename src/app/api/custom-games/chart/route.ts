@@ -1,8 +1,6 @@
 import { NextRequest } from "next/server";
-import { getAdminDb } from "@/lib/firebase-admin";
+import { getCustomGameDocuments } from "@/lib/extra-games-mongodb";
 import { CHART_CACHE_HEADERS, memGet, memSet } from "@/lib/api-helpers";
-
-const COLLECTION = "custom_games";
 
 // GET - Fetch monthly chart data for a custom game
 export async function GET(req: NextRequest) {
@@ -33,17 +31,12 @@ export async function GET(req: NextRequest) {
     const startStr = `${year}-${String(month).padStart(2, "0")}-01`;
     const endStr = `${year}-${String(month).padStart(2, "0")}-${String(daysInMonth).padStart(2, "0")}`;
 
-    const snapshot = await getAdminDb()
-      .collection(COLLECTION)
-      .where("__name__", ">=", startStr)
-      .where("__name__", "<=", endStr)
-      .get();
+    const documents = await getCustomGameDocuments(startStr, endStr);
 
     const dataMap: Record<string, string> = {};
-    snapshot.forEach((doc) => {
-      const data = doc.data();
+    documents.forEach((data) => {
       if (data[game]) {
-        dataMap[doc.id] = data[game];
+        dataMap[String(data._id)] = String(data[game]);
       }
     });
 

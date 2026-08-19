@@ -36,7 +36,7 @@ export default function ComplaintPage() {
         </a>
 
         <p className="mt-5 text-2xl font-bold text-green-700">
-          +91 73558 47700
+          +91 70151 29958
         </p>
 
       </div>

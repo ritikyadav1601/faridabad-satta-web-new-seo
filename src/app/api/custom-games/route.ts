@@ -1,8 +1,12 @@
 import { NextRequest } from "next/server";
-import { getAdminDb } from "@/lib/firebase-admin";
-import { FieldValue } from "firebase-admin/firestore";
+import {
+  deleteCustomGameField,
+  getCustomGameDocument,
+  getCustomGameDocuments,
+  upsertCustomGameDocument,
+} from "@/lib/extra-games-mongodb";
+import type { ExtraGameDocument } from "@/lib/extra-games-mongodb";
 
-const COLLECTION = "custom_games";
 const ADMIN_EMAIL = "kapil123@gmail.com";
 const ADMIN_PASSWORD = "Kapil@1997";
 
@@ -27,26 +31,21 @@ export async function GET(req: NextRequest) {
       const year = parseInt(searchParams.get("year") || String(now.getFullYear()), 10);
       const all = searchParams.get("all"); // when set, ignore month/year and return everything
 
-      let snapshot;
+      let documents;
       if (all) {
-        snapshot = await getAdminDb().collection(COLLECTION).get();
+        documents = await getCustomGameDocuments();
       } else {
         const daysInMonth = new Date(year, month, 0).getDate();
         const startStr = `${year}-${String(month).padStart(2, "0")}-01`;
         const endStr = `${year}-${String(month).padStart(2, "0")}-${String(daysInMonth).padStart(2, "0")}`;
-        snapshot = await getAdminDb()
-          .collection(COLLECTION)
-          .where("__name__", ">=", startStr)
-          .where("__name__", "<=", endStr)
-          .get();
+        documents = await getCustomGameDocuments(startStr, endStr);
       }
 
       const entries: { date: string; game: string; value: string }[] = [];
-      snapshot.forEach((doc) => {
-        const data = doc.data() || {};
+      documents.forEach((data) => {
         GAME_KEYS.forEach((g) => {
           if (data[g] != null && String(data[g]).trim() !== "") {
-            entries.push({ date: doc.id, game: g, value: String(data[g]) });
+            entries.push({ date: String(data._id), game: g, value: String(data[g]) });
           }
         });
       });
@@ -62,10 +61,9 @@ export async function GET(req: NextRequest) {
 
     // Single-date mode (homepage)
     const today = searchParams.get("date") || new Date().toISOString().slice(0, 10);
-    const snap = await getAdminDb().collection(COLLECTION).doc(today).get();
-    const data = snap.data() || {};
+    const data = await getCustomGameDocument(today);
 
-    if (!snap.exists) {
+    if (!data) {
       return Response.json({ success: true, games: {}, khaiwal: null });
     }
     
@@ -142,9 +140,7 @@ if (!isAuthed(email, password)) {
 
 const targetDate = date || new Date().toISOString().slice(0, 10);
 
-const docRef = getAdminDb().collection(COLLECTION).doc(targetDate);
-const existing = await docRef.get();
-const existingData = existing.exists ? existing.data() || {} : {};
+const existingData: Partial<ExtraGameDocument> = await getCustomGameDocument(targetDate) || {};
 
 // ✅ Khaiwal can be saved on its own (name/whatsapp) or together with games.
 // Accept a partial update — keep any field the admin didn't send.
@@ -165,7 +161,7 @@ const updatedData = {
   updatedAt: Date.now(),
 };
 
-await docRef.set(updatedData);
+await upsertCustomGameDocument(targetDate, updatedData);
 
 return Response.json({
   success: true,
@@ -193,10 +189,10 @@ export async function PATCH(req: NextRequest) {
       return Response.json({ success: false, error: "date and game are required" }, { status: 400 });
     }
 
-    await getAdminDb()
-      .collection(COLLECTION)
-      .doc(date)
-      .set({ [game]: String(value ?? "").trim(), updatedAt: Date.now() }, { merge: true });
+    await upsertCustomGameDocument(date, {
+      [game]: String(value ?? "").trim(),
+      updatedAt: Date.now(),
+    });
 
     return Response.json({ success: true });
   } catch (error) {
@@ -220,10 +216,7 @@ export async function DELETE(req: NextRequest) {
       return Response.json({ success: false, error: "date and game are required" }, { status: 400 });
     }
 
-    await getAdminDb()
-      .collection(COLLECTION)
-      .doc(date)
-      .update({ [game]: FieldValue.delete(), updatedAt: Date.now() });
+    await deleteCustomGameField(date, game);
 
     return Response.json({ success: true });
   } catch (error) {

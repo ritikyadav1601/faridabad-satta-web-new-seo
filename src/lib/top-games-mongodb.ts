@@ -317,7 +317,7 @@ const MONTHLY_CITY_FIELDS: Record<
 
 /**
  * Provides historical rows for the six markets displayed in the monthly chart.
- * Firestore data is merged afterwards only when it provides additional values.
+ * Cached extra-games data is merged afterwards only when it provides additional values.
  */
 export async function getMonthlyChartFromMongo(
   month: string,
@@ -379,15 +379,15 @@ export async function getMonthlyChartFromMongo(
 }
 
 export function mergeMonthlyChartData(
-  firestoreData: MonthlyChartData | null,
+  cachedData: MonthlyChartData | null,
   mongoData: MonthlyChartData | null
 ): MonthlyChartData | null {
-  if (!firestoreData) return mongoData;
-  if (!mongoData) return firestoreData;
+  if (!cachedData) return mongoData;
+  if (!mongoData) return cachedData;
 
   const dayFromDate = (date: string) => Number(date.match(/(\d{1,2})$/)?.[1]);
   const rows = new Map<number, ChartRow>();
-  firestoreData.results.forEach((row) => rows.set(dayFromDate(row.date), { ...row }));
+  cachedData.results.forEach((row) => rows.set(dayFromDate(row.date), { ...row }));
   mongoData.results.forEach((mongoRow) => {
     const day = dayFromDate(mongoRow.date);
     const existing = rows.get(day) || {
@@ -406,8 +406,8 @@ export function mergeMonthlyChartData(
   });
 
   return {
-    ...firestoreData,
+    ...cachedData,
     results: [...rows.entries()].sort(([a], [b]) => a - b).map(([, row]) => row),
-    scrapedAt: Math.max(firestoreData.scrapedAt, mongoData.scrapedAt),
+    scrapedAt: Math.max(cachedData.scrapedAt, mongoData.scrapedAt),
   };
 }

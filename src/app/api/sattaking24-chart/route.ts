@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getSK24ChartsFromFirestore } from "@/lib/firebase-cache";
+import { getSK24ChartsFromMongo } from "@/lib/extra-games-mongodb";
 import { memGet, memSet, CHART_CACHE_HEADERS } from "@/lib/api-helpers";
 import type { SK24ChartsData } from "@/lib/types";
 
@@ -13,11 +13,11 @@ export async function GET() {
       );
     }
 
-    const firebaseData = await getSK24ChartsFromFirestore();
-    if (firebaseData) {
-      memSet("sk24-charts", firebaseData, 300);
+    const mongoData = await getSK24ChartsFromMongo();
+    if (mongoData) {
+      memSet("sk24-charts", mongoData, 300);
       return NextResponse.json(
-        { success: true, tables: firebaseData.tables },
+        { success: true, tables: mongoData.tables },
         { headers: CHART_CACHE_HEADERS }
       );
     }

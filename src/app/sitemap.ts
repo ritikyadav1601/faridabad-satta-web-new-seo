@@ -1,8 +1,8 @@
 import type { MetadataRoute } from "next";
 import {
-  getHomepageFromFirestore,
-  getSK24GamesFromFirestore,
-} from "@/lib/firebase-cache";
+  getHomepageFromMongo,
+  getSK24GamesFromMongo,
+} from "@/lib/extra-games-mongodb";
 import { SITE_URL } from "@/lib/site";
 import { TOP_GAME_DEFS } from "@/lib/top-games";
 import { getTopGameAvailableYearsFromMongo } from "@/lib/top-games-mongodb";
@@ -31,7 +31,7 @@ function isJunkSlug(slug: string): boolean {
   return slug.replace(/[^a-z0-9]/g, "") === "showyourgamehere";
 }
 
-// Games that always exist on the homepage, regardless of what Firestore returns.
+// Games that always exist on the homepage, regardless of what MongoDB returns.
 const FIXED_GAME_NAMES = [
   ...TOP_GAME_DEFS.map((game) => game.name),
   "kohlapur", "manipur", "up-bazar", "palwal-city", "mathura-city",
@@ -50,15 +50,15 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   ];
 
   // ─── Chart pages (one per game) ───
-  // Pull live game names from Firestore, then merge with the fixed lists so the
+  // Pull live game names from MongoDB, then merge with the fixed lists so the
   // sitemap is complete even if the cache is momentarily empty.
   const slugs = new Set<string>();
   FIXED_GAME_NAMES.forEach((n) => slugs.add(toSlug(n)));
 
   try {
     const [homepage, sk24] = await Promise.all([
-      getHomepageFromFirestore(),
-      getSK24GamesFromFirestore(),
+      getHomepageFromMongo(),
+      getSK24GamesFromMongo(),
     ]);
 
     [

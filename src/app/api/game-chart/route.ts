@@ -4,12 +4,12 @@ import {
   scrapeSattaFastGameChart,
   scrapeSK24GameChart,
 } from "@/lib/scraper";
-import { getGameChartFromFirestore } from "@/lib/firebase-cache";
+import { getGameChartCacheFromMongo } from "@/lib/extra-games-mongodb";
 import type { GameChartData } from "@/lib/types";
 import { memGet, memSet, CHART_CACHE_HEADERS } from "@/lib/api-helpers";
 import { getTopGameChartFromMongo, isMongoTopGameSlug } from "@/lib/top-games-mongodb";
 
-// Homepage uses Hinglish display spellings, but Firebase + the source site
+// Homepage uses Hinglish display spellings, but the cache + source site
 // store charts under canonical slugs. Normalize before any lookup so the
 // "Chart →" links for these games resolve correctly.
 const SLUG_ALIASES: Record<string, string> = {
@@ -72,14 +72,14 @@ export async function GET(req: NextRequest) {
     }
   }
 
-  // 2. Firebase
-  const firebaseData = await getGameChartFromFirestore(slug, month, year);
-  if (firebaseData) {
-    memSet(cacheKey, firebaseData, 300);
-    return Response.json({ success: true, ...firebaseData }, { headers: CHART_CACHE_HEADERS });
+  // 2. Extra-games MongoDB cache
+  const mongoCacheData = await getGameChartCacheFromMongo(slug, month, year);
+  if (mongoCacheData) {
+    memSet(cacheKey, mongoCacheData, 300);
+    return Response.json({ success: true, ...mongoCacheData }, { headers: CHART_CACHE_HEADERS });
   }
 
-  // 3. Scrape fallback (for games not yet in Firebase)
+  // 3. Scrape fallback (for games not yet cached)
   try {
     let result = await scrapeGameChart(slug, month, year);
     if (!result) {

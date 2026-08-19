@@ -101,9 +101,8 @@ export default function HomeClient({ initialData }: { initialData: HomeData }) {
   const sk24Charts = initialData.sk24Charts;
   const monthlyChart = initialData.monthlyChart;
   const monthlyChartMeta = initialData.monthlyChartMeta;
-  const customGames = initialData.customGames;
-  const customGamesYesterday = initialData.customGamesYesterday;
   const mongoTopGames = initialData.mongoTopGames.filter((game) => !isJunkGame(game.name));
+  const extraGames = initialData.extraGames.filter((game) => !isJunkGame(game.name));
   const loading = false;
   const khaiwal = initialData.khaiwal;
 
@@ -180,62 +179,23 @@ export default function HomeClient({ initialData }: { initialData: HomeData }) {
   );
   const upcomingTopGame = upcomingTopGames[0] || tomorrowTopGames[0];
   const upcomingIsTomorrow = upcomingTopGames.length === 0;
-  const allApiGames = [...liveResults, ...nextResults, ...restResults, ...sk24Games];
-  // Former top games are now shown in Other Game Results. Games promoted above
-  // are deliberately excluded here, preventing Delhi Bazar/Shri Ganesh/
-  // Faridabad/Ghaziabad/Gali/Deshawer duplicates.
-  const otherGameDefs = [
-    { name: "kohlapur", time: "1:30 PM", customKey: "kohlapur", aliases: [] },
-    { name: "manipur", time: "2:30 PM", customKey: "manipur", aliases: [] },
-    { name: "up bazar", time: "3:30 PM", customKey: "up-bazar", aliases: ["upbazar"] },
-    { name: "palwal city", time: "4:30 PM", customKey: "palwal-city", aliases: [] },
-    { name: "mathura city", time: "6:50 PM", customKey: "mathura-city", aliases: [] },
-    { name: "sadar bazar", time: "", customKey: "", aliases: [] },
-    { name: "gwalior", time: "", customKey: "", aliases: [] },
-    { name: "delhi matka", time: "", customKey: "", aliases: [] },
-    { name: "agra", time: "", customKey: "", aliases: [] },
-    { name: "alwar", time: "", customKey: "", aliases: [] },
-    { name: "dwarka", time: "", customKey: "", aliases: [] },
-  ];
-  const otherGames: SK24Game[] = otherGameDefs.map(({ name, time, customKey, aliases }) => {
-    const norm = name.toLowerCase().replace(/\s+/g, "");
-    const allNames = [norm, ...aliases];
-    const existing = allApiGames.find(g => {
-      const gn = g.name.toLowerCase().replace(/\s+/g, "");
-      return allNames.some(n => n === gn);
-    });
-    const today = customKey && customGames[customKey] ? customGames[customKey] : existing?.today || "XX";
-    const yesterday = customKey && customGamesYesterday[customKey]
-      ? customGamesYesterday[customKey]
-      : existing?.yesterday || "XX";
-    if (existing) {
-      return {
-        name: name.toUpperCase(),
-        time: existing.time || time,
-        yesterday,
-        today: gateTodayByTime(today, existing.time || time),
-      };
-    }
-    return { name: name.toUpperCase(), time, yesterday, today: gateTodayByTime(today, time) };
-  });
-
-  // Filter remaining games: no promoted/other game should be repeated below.
+  // The lower results list comes exclusively from EXTRA_GAMES_MONGO_URI.
+  // Exclude promoted games so the separate Top Games section is untouched.
   const allFixedNames = new Set<string>();
   TOP_GAME_DEFS.forEach(({ name, aliases }) => {
     allFixedNames.add(name.toLowerCase().replace(/\s+/g, ""));
     aliases.forEach((alias) => allFixedNames.add(alias));
   });
-  otherGameDefs.forEach(({ name, aliases }) => {
-    allFixedNames.add(name.toLowerCase().replace(/\s+/g, ""));
-    aliases.forEach(a => allFixedNames.add(a));
-  });
   const isInFixedList = (name: string) => {
     const n = name.toLowerCase().replace(/\s+/g, "");
     return allFixedNames.has(n);
   };
-  const filteredLive = liveResults.filter(g => !isInFixedList(g.name) && !isHidden(g.name));
-  const filteredNext = nextResults.filter(g => !isInFixedList(g.name) && !isHidden(g.name));
-  const filteredRest = restResults.filter(g => !isInFixedList(g.name) && !isHidden(g.name));
+  const otherGames = extraGames
+    .filter((game) => !isInFixedList(game.name) && !isHidden(game.name))
+    .map((game) => ({ ...game, today: gateTodayByTime(game.today, game.time) }));
+  const filteredLive: GameResult[] = [];
+  const filteredNext: GameResult[] = [];
+  const filteredRest: GameResult[] = [];
 
   return (
     <div ref={containerRef} className="bg-[var(--surface-page)]">
@@ -719,7 +679,7 @@ function WhatsAppContactSection({
   lang: "hi" | "en";
   khaiwal: { name: string; whatsapp: string } | null;
 }) {
-  const phone = khaiwal?.whatsapp || "917355847700";
+  const phone = khaiwal?.whatsapp || "917015129958";
   const name = khaiwal?.name || "Har Har Mahadev";
   const games = [
     ["शिव गंगा", "Shiv Ganga", "12:15 PM"],

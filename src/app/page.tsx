@@ -25,7 +25,7 @@ export function generateMetadata(): Metadata {
   };
 }
 
-// Cache the expensive Firestore/MongoDB aggregation briefly. The client still
+// Cache the MongoDB aggregation briefly. The client still
 // refreshes every 20 seconds, while repeat requests can use a fast server cache.
 const getCachedHomeData = unstable_cache(getHomeData, ["homepage-data"], {
   revalidate: 20,

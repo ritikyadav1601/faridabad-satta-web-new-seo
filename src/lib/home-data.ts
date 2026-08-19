@@ -1,11 +1,9 @@
 import {
-  getHomepageFromFirestore,
-  getMonthlyChartFromFirestore,
-  getSK24GamesFromFirestore,
-  getSK24ChartsFromFirestore,
-} from "./firebase-cache";
-import { getAdminDb } from "./firebase-admin";
-import { getISTDateString } from "./utils";
+  getHomepageFromMongo,
+  getMonthlyChartCacheFromMongo,
+  getSK24GamesFromMongo,
+  getSK24ChartsFromMongo,
+} from "./extra-games-mongodb";
 import { getTopGamesFromMongo } from "./top-games-mongodb";
 import { getMonthlyChartFromMongo, mergeMonthlyChartData } from "./top-games-mongodb";
 import type {
@@ -23,53 +21,22 @@ export interface HomeData {
   sk24Charts: SK24ChartTable[];
   monthlyChart: ChartRow[];
   monthlyChartMeta: { month: string; year: string };
-  customGames: Record<string, string>;
-  customGamesYesterday: Record<string, string>;
   khaiwal: { name: string; whatsapp: string } | null;
   mongoTopGames: SK24Game[];
+  extraGames: GameResult[];
 }
 
-const CUSTOM_COLLECTION = "custom_games";
-
-// Read today's custom game values + khaiwal directly from Firestore (server-side).
-async function getCustomGamesForDate(date: string) {
-  try {
-    const snap = await getAdminDb().collection(CUSTOM_COLLECTION).doc(date).get();
-    if (!snap.exists) return { games: {} as Record<string, string>, khaiwal: null };
-    const d = snap.data() || {};
-    return {
-      games: {
-        kohlapur: d.kohlapur || "",
-        manipur: d.manipur || "",
-        "up-bazar": d["up-bazar"] || "",
-        "palwal-city": d["palwal-city"] || "",
-        "mathura-city": d["mathura-city"] || "",
-      } as Record<string, string>,
-      khaiwal: d.khaiwal || null,
-    };
-  } catch (err) {
-    console.error("[home-data] custom games read failed:", (err as Error).message);
-    return { games: {} as Record<string, string>, khaiwal: null };
-  }
-}
-
-// Fetch everything the homepage needs, in parallel, from Firestore (no scraping).
+// Fetch everything the homepage needs in parallel.
 export async function getHomeData(): Promise<HomeData> {
   const now = new Date();
   const monthName = now.toLocaleString("en-US", { month: "long" }).toLowerCase();
   const year = now.getFullYear().toString();
-  // Use IST so results roll over at midnight IST, not midnight UTC.
-  const today = getISTDateString(0);
-  const yesterday = getISTDateString(-1);
-
-  const [homepage, sk24, sk24chart, chart, mongoChart, custom, customPrev, mongoTopGames] = await Promise.all([
-    getHomepageFromFirestore(),
-    getSK24GamesFromFirestore(),
-    getSK24ChartsFromFirestore(),
-    getMonthlyChartFromFirestore(monthName, year),
+  const [homepage, sk24, sk24chart, chart, mongoChart, mongoTopGames] = await Promise.all([
+    getHomepageFromMongo(),
+    getSK24GamesFromMongo(),
+    getSK24ChartsFromMongo(),
+    getMonthlyChartCacheFromMongo(monthName, year),
     getMonthlyChartFromMongo(monthName, year),
-    getCustomGamesForDate(today),
-    getCustomGamesForDate(yesterday),
     getTopGamesFromMongo(),
   ]);
   const mergedMonthlyChart = mergeMonthlyChartData(chart, mongoChart);
@@ -85,9 +52,8 @@ export async function getHomeData(): Promise<HomeData> {
       month: mergedMonthlyChart?.month || monthName,
       year: mergedMonthlyChart?.year || year,
     },
-    customGames: custom.games || {},
-    customGamesYesterday: customPrev.games || {},
-    khaiwal: custom.khaiwal || null,
+    khaiwal: null,
     mongoTopGames,
+    extraGames: homepage?.live || [],
   };
 }

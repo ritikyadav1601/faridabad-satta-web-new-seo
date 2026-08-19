@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getSK24GamesFromFirestore } from "@/lib/firebase-cache";
+import { getSK24GamesFromMongo } from "@/lib/extra-games-mongodb";
 import { memGet, memSet, EDGE_CACHE_HEADERS } from "@/lib/api-helpers";
 import type { SK24GamesData } from "@/lib/types";
 
@@ -13,11 +13,11 @@ export async function GET() {
       );
     }
 
-    const firebaseData = await getSK24GamesFromFirestore();
-    if (firebaseData) {
-      memSet("sk24-games", firebaseData, 30);
+    const mongoData = await getSK24GamesFromMongo();
+    if (mongoData) {
+      memSet("sk24-games", mongoData, 30);
       return NextResponse.json(
-        { success: true, games: firebaseData.games },
+        { success: true, games: mongoData.games },
         { headers: EDGE_CACHE_HEADERS }
       );
     }

@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import { getMonthlyChartFromFirestore } from "@/lib/firebase-cache";
+import { getMonthlyChartCacheFromMongo } from "@/lib/extra-games-mongodb";
 import { memGet, memSet } from "@/lib/api-helpers";
 import type { MonthlyChartData } from "@/lib/types";
 import { getMonthlyChartFromMongo, mergeMonthlyChartData } from "@/lib/top-games-mongodb";
@@ -24,11 +24,11 @@ export async function GET(req: NextRequest) {
     );
   }
 
-  const [firebaseData, mongoData] = await Promise.all([
-    getMonthlyChartFromFirestore(monthName, year),
+  const [cachedMongoData, mongoData] = await Promise.all([
+    getMonthlyChartCacheFromMongo(monthName, year),
     getMonthlyChartFromMongo(monthName, year),
   ]);
-  const chartData = mergeMonthlyChartData(firebaseData, mongoData);
+  const chartData = mergeMonthlyChartData(cachedMongoData, mongoData);
   if (chartData) {
     memSet(cacheKey, chartData, 20);
     return Response.json(
