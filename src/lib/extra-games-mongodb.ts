@@ -125,6 +125,25 @@ export async function getCustomGameDocument(date: string) {
   return (await collection(process.env.EXTRA_GAMES_CUSTOM_COLLECTION || "custom_games")).findOne({ _id: date });
 }
 
+export async function getKhaiwalSettings() {
+  try {
+    const customGames = await collection(process.env.EXTRA_GAMES_CUSTOM_COLLECTION || "custom_games");
+    const settings = await customGames.findOne({ _id: "khaiwal-settings" });
+    if (settings?.khaiwal) return settings.khaiwal as { name: string; whatsapp: string };
+
+    // Backward-compatible fallback for details saved by the older date-based panel.
+    const latest = await customGames.findOne({ khaiwal: { $exists: true } } as never, { sort: { _id: -1 } });
+    return latest?.khaiwal ? latest.khaiwal as { name: string; whatsapp: string } : null;
+  } catch (error) {
+    // This is called from the root layout's WhatsAppButton on every single
+    // page, and from /contact — a MongoDB hiccup here must never 500 the
+    // whole site. Callers already have a hardcoded phone-number fallback for
+    // a null result (see WhatsAppButton.tsx and contact/page.tsx).
+    console.error("[extra-games-mongodb] Failed to read khaiwal settings:", (error as Error).message);
+    return null;
+  }
+}
+
 export async function getCustomGameDocuments(start?: string, end?: string) {
   const query = start && end ? { _id: { $gte: start, $lte: end } } : {};
   return (await collection(process.env.EXTRA_GAMES_CUSTOM_COLLECTION || "custom_games"))

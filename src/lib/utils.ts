@@ -20,7 +20,8 @@ export function getISTDateString(offsetDays = 0): string {
 }
 
 export function getWhatsAppLink(phoneNumber: string, message?: string): string {
-  const cleanNumber = phoneNumber.replace(/[^0-9]/g, "");
+  const digits = phoneNumber.replace(/[^0-9]/g, "");
+  const cleanNumber = digits.length === 10 ? `91${digits}` : digits;
   const encodedMessage = message
     ? `?text=${encodeURIComponent(message)}`
     : "";

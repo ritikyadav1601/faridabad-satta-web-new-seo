@@ -2,11 +2,21 @@
 
 import { FaTelegramPlane, FaWhatsapp } from "react-icons/fa";
 import { useLanguage, t } from "@/context/LanguageContext";
-
-const WHATSAPP_NUMBER = "917355847700";
+import { useEffect, useState } from "react";
 
 export default function ComplaintPage() {
   const { lang } = useLanguage();
+  const [whatsappNumber, setWhatsappNumber] = useState("917015129958");
+
+  useEffect(() => {
+    fetch("/api/custom-games?date=khaiwal-settings")
+      .then((response) => response.json())
+      .then((data) => {
+        const number = String(data.khaiwal?.whatsapp || "").replace(/\D/g, "");
+        if (number) setWhatsappNumber(number.startsWith("91") ? number : `91${number}`);
+      })
+      .catch(() => {});
+  }, []);
 
   return (
     <main className="min-h-screen bg-gray-50 flex items-center justify-center px-4 py-10">
@@ -26,7 +36,7 @@ export default function ComplaintPage() {
         </p>
 
         <a
-          href={`https://wa.me/${WHATSAPP_NUMBER}`}
+          href={`https://wa.me/${whatsappNumber}`}
           target="_blank"
           rel="noopener noreferrer"
           className="mt-8 inline-flex items-center gap-3 rounded-xl bg-green-600 px-8 py-4 text-lg font-bold text-white transition hover:bg-green-700"
@@ -36,7 +46,7 @@ export default function ComplaintPage() {
         </a>
 
         <p className="mt-5 text-2xl font-bold text-green-700">
-          +91 70151 29958
+          +{whatsappNumber}
         </p>
 
       </div>

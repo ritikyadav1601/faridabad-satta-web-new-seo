@@ -3,9 +3,11 @@ import {
   getMonthlyChartCacheFromMongo,
   getSK24GamesFromMongo,
   getSK24ChartsFromMongo,
+  getKhaiwalSettings,
 } from "./extra-games-mongodb";
 import { getTopGamesFromMongo } from "./top-games-mongodb";
 import { getMonthlyChartFromMongo, mergeMonthlyChartData } from "./top-games-mongodb";
+import { getPublishedBlogs, type BlogPost } from "./blogs-mongodb";
 import type {
   GameResult,
   ChartRow,
@@ -24,6 +26,7 @@ export interface HomeData {
   khaiwal: { name: string; whatsapp: string } | null;
   mongoTopGames: SK24Game[];
   extraGames: GameResult[];
+  blogs: BlogPost[];
 }
 
 // Fetch everything the homepage needs in parallel.
@@ -31,14 +34,17 @@ export async function getHomeData(): Promise<HomeData> {
   const now = new Date();
   const monthName = now.toLocaleString("en-US", { month: "long" }).toLowerCase();
   const year = now.getFullYear().toString();
-  const [homepage, sk24, sk24chart, chart, mongoChart, mongoTopGames] = await Promise.all([
-    getHomepageFromMongo(),
-    getSK24GamesFromMongo(),
-    getSK24ChartsFromMongo(),
-    getMonthlyChartCacheFromMongo(monthName, year),
-    getMonthlyChartFromMongo(monthName, year),
-    getTopGamesFromMongo(),
-  ]);
+  const [homepage, sk24, sk24chart, chart, mongoChart, mongoTopGames, blogs, khaiwal] =
+    await Promise.all([
+      getHomepageFromMongo(),
+      getSK24GamesFromMongo(),
+      getSK24ChartsFromMongo(),
+      getMonthlyChartCacheFromMongo(monthName, year),
+      getMonthlyChartFromMongo(monthName, year),
+      getTopGamesFromMongo(),
+      getPublishedBlogs(),
+      getKhaiwalSettings(),
+    ]);
   const mergedMonthlyChart = mergeMonthlyChartData(chart, mongoChart);
 
   return {
@@ -52,8 +58,9 @@ export async function getHomeData(): Promise<HomeData> {
       month: mergedMonthlyChart?.month || monthName,
       year: mergedMonthlyChart?.year || year,
     },
-    khaiwal: null,
+    khaiwal,
     mongoTopGames,
     extraGames: homepage?.live || [],
+    blogs,
   };
 }

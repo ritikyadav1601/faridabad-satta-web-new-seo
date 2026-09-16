@@ -1,4 +1,5 @@
 import { NextRequest } from "next/server";
+import { revalidatePath } from "next/cache";
 import {
   deleteCustomGameField,
   getCustomGameDocument,
@@ -6,16 +7,10 @@ import {
   upsertCustomGameDocument,
 } from "@/lib/extra-games-mongodb";
 import type { ExtraGameDocument } from "@/lib/extra-games-mongodb";
-
-const ADMIN_EMAIL = "kapil123@gmail.com";
-const ADMIN_PASSWORD = "Kapil@1997";
+import { authenticateAdmin, hasValidAdminSession } from "@/lib/admin-auth";
 
 // Known custom game keys (used to flatten the per-date map into a result list)
 const GAME_KEYS = ["kohlapur", "manipur", "up-bazar", "palwal-city", "mathura-city"];
-
-function isAuthed(email?: string, password?: string) {
-  return email === ADMIN_EMAIL && password === ADMIN_PASSWORD;
-}
 
 // GET
 //   ?date=YYYY-MM-DD            -> { games: { kohlapur: "45", ... } }  (used by homepage)
@@ -131,7 +126,7 @@ const {
   date,
 } = body;
 
-if (!isAuthed(email, password)) {
+if (!hasValidAdminSession(req) && !(await authenticateAdmin(email, password))) {
   return Response.json(
     { success: false, error: "Invalid credentials" },
     { status: 401 }
@@ -162,6 +157,7 @@ const updatedData = {
 };
 
 await upsertCustomGameDocument(targetDate, updatedData);
+revalidatePath("/");
 
 return Response.json({
   success: true,
@@ -182,7 +178,7 @@ export async function PATCH(req: NextRequest) {
     const body = await req.json();
     const { email, password, date, game, value } = body;
 
-    if (!isAuthed(email, password)) {
+    if (!hasValidAdminSession(req) && !(await authenticateAdmin(email, password))) {
       return Response.json({ success: false, error: "Invalid credentials" }, { status: 401 });
     }
     if (!date || !game) {
@@ -209,7 +205,7 @@ export async function DELETE(req: NextRequest) {
     const body = await req.json();
     const { email, password, date, game } = body;
 
-    if (!isAuthed(email, password)) {
+    if (!hasValidAdminSession(req) && !(await authenticateAdmin(email, password))) {
       return Response.json({ success: false, error: "Invalid credentials" }, { status: 401 });
     }
     if (!date || !game) {

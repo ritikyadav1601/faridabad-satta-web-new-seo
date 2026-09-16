@@ -1,11 +1,8 @@
 import type { MetadataRoute } from "next";
-import {
-  getHomepageFromMongo,
-  getSK24GamesFromMongo,
-} from "@/lib/extra-games-mongodb";
 import { SITE_URL } from "@/lib/site";
 import { TOP_GAME_DEFS } from "@/lib/top-games";
 import { getTopGameAvailableYearsFromMongo } from "@/lib/top-games-mongodb";
+import { CHART_META } from "@/lib/chart-meta";
 
 // Refresh the sitemap at most every hour.
 export const revalidate = 3600;
@@ -27,15 +24,27 @@ function toSlug(name: string): string {
   return aliases[slug] || slug;
 }
 
-function isJunkSlug(slug: string): boolean {
-  return slug.replace(/[^a-z0-9]/g, "") === "showyourgamehere";
-}
-
 // Games that always exist on the homepage, regardless of what MongoDB returns.
 const FIXED_GAME_NAMES = [
   ...TOP_GAME_DEFS.map((game) => game.name),
   "kohlapur", "manipur", "up-bazar", "palwal-city", "mathura-city",
 ];
+
+// The sitemap's chart routes are the deliberately curated set: the promoted
+// homepage games, the 5 "custom" games, and every slug with hand-written SEO
+// metadata in CHART_META. This used to also merge in every game name from
+// the live homepage feed (getHomepageFromMongo/getSK24GamesFromMongo) and
+// the SK24 source, which pulled in ~200 scraped, non-curated market names
+// with no unique metadata. Search Console showed the cost of that: 215 of
+// 218 known pages stuck as "Discovered - currently not indexed", spreading
+// crawl budget across a huge long tail of near-duplicate pages instead of
+// the ones actually worth Google's attention. Those other chart pages still
+// exist and work if visited directly — they're just no longer advertised in
+// the sitemap.
+const CURATED_GAME_SLUGS = new Set<string>([
+  ...FIXED_GAME_NAMES.map(toSlug),
+  ...Object.keys(CHART_META),
+]);
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const now = new Date();
@@ -49,37 +58,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${SITE_URL}/disclaimer`, changeFrequency: "yearly", priority: 0.3 },
   ];
 
-  // ─── Chart pages (one per game) ───
-  // Pull live game names from MongoDB, then merge with the fixed lists so the
-  // sitemap is complete even if the cache is momentarily empty.
-  const slugs = new Set<string>();
-  FIXED_GAME_NAMES.forEach((n) => slugs.add(toSlug(n)));
-
-  try {
-    const [homepage, sk24] = await Promise.all([
-      getHomepageFromMongo(),
-      getSK24GamesFromMongo(),
-    ]);
-
-    [
-      ...(homepage?.live || []),
-      ...(homepage?.next || []),
-      ...(homepage?.rest || []),
-      ...(sk24?.games || []),
-    ].forEach((g) => {
-      if (g?.name) slugs.add(toSlug(g.name));
-    });
-  } catch {
-    // Fall back to the fixed list only.
-  }
-
-  const chartRoutes: MetadataRoute.Sitemap = Array.from(slugs)
-    .filter((slug) => Boolean(slug) && !isJunkSlug(slug))
-    .map((slug) => ({
-      url: `${SITE_URL}/chart/${slug}`,
-      changeFrequency: "daily",
-      priority: 0.8,
-    }));
+  // ─── Chart pages (one per curated game) ───
+  const chartRoutes: MetadataRoute.Sitemap = Array.from(CURATED_GAME_SLUGS).map((slug) => ({
+    url: `${SITE_URL}/chart/${slug}`,
+    changeFrequency: "daily",
+    priority: 0.8,
+  }));
 
   // Publish only archive pages backed by real records. Advertising every year
   // for every game creates empty, thin URLs and wastes search-engine crawl

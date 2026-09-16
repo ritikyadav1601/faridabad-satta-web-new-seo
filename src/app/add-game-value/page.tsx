@@ -1,792 +1,87 @@
-// "use client";
-
-// import { useState, useEffect, useCallback, useMemo } from "react";
-
-// const CUSTOM_GAMES = [
-//   { key: "kohlapur", label: "कोहलापुर (Kohlapur)", time: "1:30 PM" },
-//   { key: "manipur", label: "मणिपुर (Manipur)", time: "2:30 PM" },
-//   { key: "palwal-city", label: "पलवल City (Palwal City)", time: "4:30 PM" },
-//   { key: "mathura-city", label: "मथूरा City (Mathura City)", time: "6:50 PM" },
-// ];
-
-// const ADMIN_EMAIL = "kapil123@gmail.com";
-// const ADMIN_PASSWORD = "Kapil@1997";
-
-// type Entry = { date: string; game: string; value: string };
-
-// function gameMeta(key: string) {
-//   return CUSTOM_GAMES.find((g) => g.key === key);
-// }
-
-// export default function AddGameValuePage() {
-//   const [isLoggedIn, setIsLoggedIn] = useState(false);
-//   const [email, setEmail] = useState("");
-//   const [password, setPassword] = useState("");
-//   const [loginError, setLoginError] = useState("");
-
-//   const [date, setDate] = useState(() => new Date().toISOString().slice(0, 10));
-//   const [values, setValues] = useState<Record<string, string>>({});
-//   const [savedValues, setSavedValues] = useState<Record<string, string>>({});
-//   const [saving, setSaving] = useState(false);
-//   const [message, setMessage] = useState("");
-
-//   // ----- Results list state -----
-//   const [entries, setEntries] = useState<Entry[]>([]);
-//   const [currentMonthOnly, setCurrentMonthOnly] = useState(true);
-//   const [filterDate, setFilterDate] = useState("");
-//   const [filterGame, setFilterGame] = useState("");
-//   const [search, setSearch] = useState("");
-//   const [page, setPage] = useState(1);
-//   const [perPage, setPerPage] = useState(10);
-
-//   // Inline edit state
-//   const [editing, setEditing] = useState<string | null>(null); // `${date}__${game}`
-//   const [editValue, setEditValue] = useState("");
-
-//   // ---- Fetch saved values for the form's date ----
-//   const fetchValues = useCallback(async () => {
-//     try {
-//       const res = await fetch(`/api/custom-games?date=${date}`);
-//       const data = await res.json();
-//       if (data.success && data.games) {
-//         const existing: Record<string, string> = {};
-//         CUSTOM_GAMES.forEach((g) => {
-//           if (data.games[g.key]) existing[g.key] = data.games[g.key];
-//         });
-//         setSavedValues(existing);
-//         setValues(existing);
-//       }
-//     } catch {
-//       /* ignore */
-//     }
-//   }, [date]);
-
-//   // ---- Fetch results list ----
-//   const fetchEntries = useCallback(async () => {
-//     try {
-//       const now = new Date();
-//       const qs = currentMonthOnly
-//         ? `list=1&month=${now.getMonth() + 1}&year=${now.getFullYear()}`
-//         : `list=1&all=1`;
-//       const res = await fetch(`/api/custom-games?${qs}`);
-//       const data = await res.json();
-//       if (data.success) setEntries(data.entries || []);
-//     } catch {
-//       /* ignore */
-//     }
-//   }, [currentMonthOnly]);
-
-//   useEffect(() => {
-//     if (!isLoggedIn) return;
-//     fetchValues();
-//   }, [isLoggedIn, fetchValues]);
-
-//   useEffect(() => {
-//     if (!isLoggedIn) return;
-//     fetchEntries();
-//   }, [isLoggedIn, fetchEntries]);
-
-//   const handleLogin = () => {
-//     if (email === ADMIN_EMAIL && password === ADMIN_PASSWORD) {
-//       setIsLoggedIn(true);
-//       setLoginError("");
-//     } else {
-//       setLoginError("Invalid email or password");
-//     }
-//   };
-
-//   const handleSave = async () => {
-//     setSaving(true);
-//     setMessage("");
-
-//     const games: Record<string, string> = {};
-//     CUSTOM_GAMES.forEach((g) => {
-//       if (values[g.key]?.trim()) games[g.key] = values[g.key].trim();
-//     });
-
-//     try {
-//       const res = await fetch("/api/custom-games", {
-//         method: "POST",
-//         headers: { "Content-Type": "application/json" },
-//         body: JSON.stringify({ email, password, games, date }),
-//       });
-//       const data = await res.json();
-//       if (data.success) {
-//         setMessage("Values saved successfully!");
-//         setSavedValues({ ...savedValues, ...games });
-//         fetchEntries();
-//       } else {
-//         setMessage("Error: " + data.error);
-//       }
-//     } catch {
-//       setMessage("Network error");
-//     } finally {
-//       setSaving(false);
-//     }
-//   };
-
-//   const handleUpdate = async (e: Entry) => {
-//     try {
-//       const res = await fetch("/api/custom-games", {
-//         method: "PATCH",
-//         headers: { "Content-Type": "application/json" },
-//         body: JSON.stringify({ email, password, date: e.date, game: e.game, value: editValue.trim() }),
-//       });
-//       const data = await res.json();
-//       if (data.success) {
-//         setEditing(null);
-//         fetchEntries();
-//         if (e.date === date) fetchValues();
-//       }
-//     } catch {
-//       /* ignore */
-//     }
-//   };
-
-//   const handleDelete = async (e: Entry) => {
-//     if (!confirm(`Delete ${gameMeta(e.game)?.label || e.game} result (${e.value}) for ${e.date}?`)) return;
-//     try {
-//       const res = await fetch("/api/custom-games", {
-//         method: "DELETE",
-//         headers: { "Content-Type": "application/json" },
-//         body: JSON.stringify({ email, password, date: e.date, game: e.game }),
-//       });
-//       const data = await res.json();
-//       if (data.success) {
-//         fetchEntries();
-//         if (e.date === date) fetchValues();
-//       }
-//     } catch {
-//       /* ignore */
-//     }
-//   };
-
-//   // ---- Derived: filtered + paginated entries ----
-//   const filtered = useMemo(() => {
-//     return entries.filter((e) => {
-//       if (filterDate && e.date !== filterDate) return false;
-//       if (filterGame && e.game !== filterGame) return false;
-//       if (search && !e.value.includes(search.trim())) return false;
-//       return true;
-//     });
-//   }, [entries, filterDate, filterGame, search]);
-
-//   const totalPages = Math.max(1, Math.ceil(filtered.length / perPage));
-//   const safePage = Math.min(page, totalPages);
-//   const start = (safePage - 1) * perPage;
-//   const pageItems = filtered.slice(start, start + perPage);
-
-//   useEffect(() => {
-//     setPage(1);
-//   }, [filterDate, filterGame, search, perPage, currentMonthOnly]);
-
-//   const clearFilters = () => {
-//     setFilterDate("");
-//     setFilterGame("");
-//     setSearch("");
-//   };
-
-//   // ---------------- Login screen ----------------
-//   if (!isLoggedIn) {
-//     return (
-//       <div className="min-h-screen bg-gray-100 flex items-center justify-center px-4">
-//         <div className="bg-white rounded-2xl shadow-lg p-6 w-full max-w-sm">
-//           <h1 className="text-xl font-black text-center text-gray-900 mb-6">Admin Login</h1>
-//           {loginError && (
-//             <p className="text-red-500 text-sm text-center mb-4 font-bold">{loginError}</p>
-//           )}
-//           <div className="space-y-4">
-//             <div>
-//               <label className="block text-sm font-bold text-gray-700 mb-1">Email</label>
-//               <input
-//                 type="email"
-//                 value={email}
-//                 onChange={(e) => setEmail(e.target.value)}
-//                 className="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-amber-500"
-//                 placeholder="Enter email"
-//               />
-//             </div>
-//             <div>
-//               <label className="block text-sm font-bold text-gray-700 mb-1">Password</label>
-//               <input
-//                 type="password"
-//                 value={password}
-//                 onChange={(e) => setPassword(e.target.value)}
-//                 className="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-amber-500"
-//                 placeholder="Enter password"
-//                 onKeyDown={(e) => e.key === "Enter" && handleLogin()}
-//               />
-//             </div>
-//             <button
-//               onClick={handleLogin}
-//               className="w-full bg-amber-500 hover:bg-amber-600 text-white font-bold py-2.5 rounded-xl transition"
-//             >
-//               Login
-//             </button>
-//           </div>
-//         </div>
-//       </div>
-//     );
-//   }
-
-//   // ---------------- Admin panel ----------------
-//   return (
-//     <div className="min-h-screen bg-gray-50 py-6 px-4">
-//       <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-6">
-//         {/* ===== Left: Add New Result ===== */}
-//         <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-6 sm:p-8">
-//           <h1 className="text-2xl font-black text-gray-900 mb-6 flex items-center gap-2">
-//             <span className="text-amber-500">+</span> Add New Result
-//           </h1>
-
-//           {/* Date */}
-//           <div className="mb-5">
-//             <label className="block text-sm font-bold text-gray-700 mb-1.5">
-//               Date <span className="text-red-500">*</span>
-//             </label>
-//             <input
-//               type="date"
-//               value={date}
-//               onChange={(e) => setDate(e.target.value)}
-//               className="w-full bg-white border border-gray-300 rounded-xl px-4 py-3 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-amber-500"
-//             />
-//           </div>
-
-//           {/* Game inputs */}
-//           <div className="space-y-4 mb-6">
-//             {CUSTOM_GAMES.map((game) => (
-//               <div key={game.key}>
-//                 <label className="block text-sm font-bold text-gray-700 mb-1.5">
-//                   {game.label}
-//                   <span className="text-gray-500 font-normal ml-2">({game.time})</span>
-//                 </label>
-//                 <input
-//                   type="text"
-//                   value={values[game.key] || ""}
-//                   onChange={(e) => setValues({ ...values, [game.key]: e.target.value })}
-//                   className="w-full bg-white border border-gray-300 rounded-xl px-4 py-3 text-sm font-mono text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-amber-500"
-//                   placeholder="Enter result (e.g. 45)"
-//                   maxLength={2}
-//                 />
-//                 {savedValues[game.key] && (
-//                   <p className="text-xs text-green-600 mt-1 font-bold">Saved: {savedValues[game.key]}</p>
-//                 )}
-//               </div>
-//             ))}
-//           </div>
-
-//           <button
-//             onClick={handleSave}
-//             disabled={saving}
-//             className="w-full bg-amber-500 hover:bg-amber-600 text-white font-bold py-3.5 rounded-2xl transition disabled:opacity-50"
-//           >
-//             {saving ? "Saving..." : "Add Result"}
-//           </button>
-
-//           {message && (
-//             <p
-//               className={`text-sm text-center mt-3 font-bold ${
-//                 message.includes("Error") ? "text-red-500" : "text-green-600"
-//               }`}
-//             >
-//               {message}
-//             </p>
-//           )}
-//         </div>
-
-//         {/* ===== Right: Results ===== */}
-//         <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-6 sm:p-8">
-//           <div className="flex items-center justify-between mb-5">
-//             <h2 className="text-2xl font-black text-gray-900">
-//               Results <span className="text-gray-600 font-bold">({filtered.length} total)</span>
-//             </h2>
-//             <button
-//               onClick={clearFilters}
-//               className="text-sm text-gray-600 hover:text-gray-900 font-medium flex items-center gap-1"
-//             >
-//               ✕ Clear Filters
-//             </button>
-//           </div>
-
-//           {/* Current month toggle */}
-//           <div className="flex items-center justify-between bg-amber-100 rounded-2xl px-4 py-3 mb-4">
-//             <span className="text-sm font-bold text-gray-800">Show current month only</span>
-//             <button
-//               onClick={() => setCurrentMonthOnly((v) => !v)}
-//               className={`relative w-12 h-6 rounded-full transition ${
-//                 currentMonthOnly ? "bg-amber-500" : "bg-gray-400"
-//               }`}
-//               aria-label="Toggle current month"
-//             >
-//               <span
-//                 className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full transition ${
-//                   currentMonthOnly ? "translate-x-6" : ""
-//                 }`}
-//               />
-//             </button>
-//           </div>
-
-//           {/* Filters */}
-//           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
-//             <input
-//               type="date"
-//               value={filterDate}
-//               onChange={(e) => setFilterDate(e.target.value)}
-//               className="bg-white border border-gray-300 rounded-xl px-4 py-2.5 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-amber-500"
-//             />
-//             <select
-//               value={filterGame}
-//               onChange={(e) => setFilterGame(e.target.value)}
-//               className="bg-white border border-gray-300 rounded-xl px-4 py-2.5 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-amber-500"
-//             >
-//               <option value="">All Games</option>
-//               {CUSTOM_GAMES.map((g) => (
-//                 <option key={g.key} value={g.key}>
-//                   {g.label}
-//                 </option>
-//               ))}
-//             </select>
-//           </div>
-
-//           {/* Search */}
-//           <input
-//             type="text"
-//             value={search}
-//             onChange={(e) => setSearch(e.target.value)}
-//             placeholder="🔍  Search by result number..."
-//             className="w-full bg-white border border-gray-300 rounded-xl px-4 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-amber-500 mb-3"
-//           />
-
-//           {/* Count + per page */}
-//           <div className="flex items-center justify-between mb-3">
-//             <p className="text-sm text-amber-600 font-medium">
-//               {currentMonthOnly && "Current month: "}
-//               {filtered.length === 0
-//                 ? "No results"
-//                 : `Showing ${start + 1}-${Math.min(start + perPage, filtered.length)} of ${filtered.length}`}
-//             </p>
-//             <select
-//               value={perPage}
-//               onChange={(e) => setPerPage(Number(e.target.value))}
-//               className="bg-white border border-gray-300 rounded-lg px-3 py-1.5 text-sm text-gray-900 focus:outline-none"
-//             >
-//               {[10, 20, 50].map((n) => (
-//                 <option key={n} value={n}>
-//                   {n} per page
-//                 </option>
-//               ))}
-//             </select>
-//           </div>
-
-//           {/* Result cards */}
-//           <div className="space-y-3 max-h-[520px] overflow-y-auto pr-1">
-//             {pageItems.length === 0 && (
-//               <p className="text-center text-gray-500 text-sm py-8">No results found.</p>
-//             )}
-//             {pageItems.map((e) => {
-//               const meta = gameMeta(e.game);
-//               const id = `${e.date}__${e.game}`;
-//               const isEditing = editing === id;
-//               return (
-//                 <div
-//                   key={id}
-//                   className="bg-gray-50 border border-gray-200 rounded-2xl px-4 py-3.5"
-//                 >
-//                   <div className="flex items-start justify-between">
-//                     <div className="flex-1">
-//                       <div className="flex items-center gap-2">
-//                         <span className="text-amber-500">📍</span>
-//                         <span className="font-bold text-gray-900 uppercase text-sm">
-//                           {meta?.label || e.game}
-//                         </span>
-//                         {isEditing ? (
-//                           <input
-//                             value={editValue}
-//                             onChange={(ev) => setEditValue(ev.target.value)}
-//                             maxLength={2}
-//                             className="w-14 bg-white border border-amber-400 rounded px-2 py-0.5 text-sm font-mono text-gray-900 focus:outline-none"
-//                             autoFocus
-//                           />
-//                         ) : (
-//                           <span className="font-black text-gray-900 ml-1">{e.value}</span>
-//                         )}
-//                       </div>
-//                       <p className="text-xs text-gray-500 mt-1.5 ml-7">Time: {meta?.time || "-"}</p>
-//                       <p className="text-xs text-gray-500 mt-1 ml-7">📅 {e.date}</p>
-//                     </div>
-
-//                     <div className="flex items-center gap-2">
-//                       {isEditing ? (
-//                         <>
-//                           <button
-//                             onClick={() => handleUpdate(e)}
-//                             className="text-green-600 hover:text-green-700 text-sm font-bold"
-//                           >
-//                             Save
-//                           </button>
-//                           <button
-//                             onClick={() => setEditing(null)}
-//                             className="text-gray-500 hover:text-gray-700 text-sm"
-//                           >
-//                             Cancel
-//                           </button>
-//                         </>
-//                       ) : (
-//                         <>
-//                           <button
-//                             onClick={() => {
-//                               setEditing(id);
-//                               setEditValue(e.value);
-//                             }}
-//                             className="text-amber-600 hover:text-amber-700"
-//                             aria-label="Edit"
-//                           >
-//                             ✎
-//                           </button>
-//                           <button
-//                             onClick={() => handleDelete(e)}
-//                             className="text-red-500 hover:text-red-600"
-//                             aria-label="Delete"
-//                           >
-//                             🗑
-//                           </button>
-//                         </>
-//                       )}
-//                     </div>
-//                   </div>
-//                 </div>
-//               );
-//             })}
-//           </div>
-
-//           {/* Pagination */}
-//           {totalPages > 1 && (
-//             <div className="flex items-center justify-center gap-2 mt-5">
-//               <button
-//                 onClick={() => setPage((p) => Math.max(1, p - 1))}
-//                 disabled={safePage === 1}
-//                 className="w-9 h-9 rounded-lg bg-gray-300 text-gray-700 disabled:opacity-40 hover:bg-gray-400 transition"
-//               >
-//                 ‹
-//               </button>
-//               {Array.from({ length: totalPages }, (_, i) => i + 1)
-//                 .filter((p) => Math.abs(p - safePage) <= 2 || p === 1 || p === totalPages)
-//                 .map((p, idx, arr) => (
-//                   <span key={p} className="flex items-center">
-//                     {idx > 0 && arr[idx - 1] !== p - 1 && <span className="px-1 text-gray-400">…</span>}
-//                     <button
-//                       onClick={() => setPage(p)}
-//                       className={`w-9 h-9 rounded-lg font-bold transition ${
-//                         p === safePage
-//                           ? "bg-amber-500 text-white"
-//                           : "bg-gray-300 text-gray-700 hover:bg-gray-400"
-//                       }`}
-//                     >
-//                       {p}
-//                     </button>
-//                   </span>
-//                 ))}
-//               <button
-//                 onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-//                 disabled={safePage === totalPages}
-//                 className="w-9 h-9 rounded-lg bg-gray-300 text-gray-700 disabled:opacity-40 hover:bg-gray-400 transition"
-//               >
-//                 ›
-//               </button>
-//             </div>
-//           )}
-//         </div>
-//       </div>
-//     </div>
-//   );
-// }
-
 "use client";
 
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
-const CUSTOM_GAMES = [
-  { key: "kohlapur", label: "कोहलापुर (Kohlapur)", time: "1:30 PM" },
-  { key: "manipur", label: "मणिपुर (Manipur)", time: "2:30 PM" },
-  { key: "up-bazar", label: "UP बाज़ार (UP Bazar)", time: "3:30 PM" },
-  { key: "palwal-city", label: "पलवल City (Palwal City)", time: "4:30 PM" },
-  { key: "mathura-city", label: "मथूरा City (Mathura City)", time: "6:50 PM" },
+const GAMES = [
+  ["DESHAWER", "05:10 AM"], ["SHIV GANGA", "12:15 PM"], ["SABAR BAZAR", "01:30 PM"],
+  ["ALINAGAR", "02:15 PM"], ["DELHI BAZAR", "02:50 PM"], ["SHRI GANESH", "04:20 PM"],
+  ["FATEHABAD CITY", "05:20 PM"], ["FARIDABAD", "06:10 PM"], ["MULTAN BAZAR", "07:20 PM"],
+  ["GHAZIABAD", "09:30 PM"], ["KALYANPURI", "10:20 PM"], ["GALI", "11:30 PM"],
 ];
+const EMPTY_BLOG = { title: "", slug: "", metaTitle: "", metaDescription: "", image: "", content: "" };
+type Tab = "khaiwal" | "results" | "blogs";
+type Credentials = { email: string; password: string };
+type Blog = typeof EMPTY_BLOG & { _id: string };
+type DeclaredResult = { game: string; time: string; result: string; date: string };
 
-const ADMIN_EMAIL = "kapil123@gmail.com";
-const ADMIN_PASSWORD = "Kapil@1997";
-
-function gameMeta(key: string) {
-  return CUSTOM_GAMES.find((g) => g.key === key);
+function todayIST() {
+  return new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Kolkata", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date());
 }
 
-type Entry = {
-  date: string;
-  game: string;
-  value: string;
-  khaiwalName?: string;
-  whatsapp?: string;
-};
-
-export default function AddGameValuePage() {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-
-  // Default to today's IST date (same key the homepage reads).
-  const [date, setDate] = useState(() =>
-    new Intl.DateTimeFormat("en-CA", {
-      timeZone: "Asia/Kolkata",
-      year: "numeric",
-      month: "2-digit",
-      day: "2-digit",
-    }).format(new Date())
-  );
-
-  const [values, setValues] = useState<Record<string, string>>({});
-  const [savedValues, setSavedValues] = useState<Record<string, string>>({});
-
-  // ✅ NEW FIELDS (KHAIWAL)
-  const [khaiwalName, setKhaiwalName] = useState("");
-  const [whatsapp, setWhatsapp] = useState("");
-  const [savedKhaiwal, setSavedKhaiwal] = useState<{
-    name: string;
-    whatsapp: string;
-  } | null>(null);
-  const [savingKhaiwal, setSavingKhaiwal] = useState(false);
-
-  const [entries, setEntries] = useState<Entry[]>([]);
-
-  const fetchValues = useCallback(async () => {
-    try {
-      const res = await fetch(`/api/custom-games?date=${date}`);
-      const data = await res.json();
-
-      if (data.success) {
-        setValues(data.games || {});
-        setKhaiwalName(data.khaiwal?.name || "");
-        setWhatsapp(data.khaiwal?.whatsapp || "");
-        setSavedKhaiwal(data.khaiwal || null);
-      }
-    } catch {}
-  }, [date]);
-
-  const fetchEntries = useCallback(async () => {
-    try {
-      const res = await fetch(`/api/custom-games?list=1&all=1`);
-      const data = await res.json();
-      if (data.success) setEntries(data.entries || []);
-    } catch {}
+export default function AdminPage() {
+  const [credentials, setCredentials] = useState<Credentials>({ email: "", password: "" });
+  const [loggedIn, setLoggedIn] = useState(false);
+  const [checkingSession, setCheckingSession] = useState(true);
+  const [loggingIn, setLoggingIn] = useState(false);
+  const [error, setError] = useState("");
+  const [tab, setTab] = useState<Tab>("khaiwal");
+  const authenticatedOnce = useRef(false);
+  useEffect(() => {
+    fetch("/api/admin/login", { cache: "no-store" })
+      .then((response) => {
+        authenticatedOnce.current = response.ok;
+        setLoggedIn(response.ok);
+      })
+      .catch(() => setLoggedIn(false))
+      .finally(() => setCheckingSession(false));
   }, []);
-
   useEffect(() => {
-    if (isLoggedIn) fetchValues();
-  }, [isLoggedIn, fetchValues]);
-
-  useEffect(() => {
-    if (isLoggedIn) fetchEntries();
-  }, [isLoggedIn, fetchEntries]);
-
-  const handleLogin = () => {
-    if (email === ADMIN_EMAIL && password === ADMIN_PASSWORD) {
-      setIsLoggedIn(true);
-    } else {
-      alert("Invalid login");
+    if (!checkingSession && !loggedIn && authenticatedOnce.current) {
+      authenticatedOnce.current = false;
+      void fetch("/api/admin/login", { method: "DELETE" });
     }
-  };
-
-  const handleSave = async () => {
-    const games: Record<string, string> = {};
-
-    CUSTOM_GAMES.forEach((g) => {
-      if (values[g.key]) games[g.key] = values[g.key];
-    });
-
-    try {
-      const res = await fetch("/api/custom-games", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          email,
-          password,
-          date,
-          games,
-
-          // ✅ NEW FIELDS
-          khaiwalName,
-          whatsapp,
-        }),
-      });
-
-      const data = await res.json();
-      if (data.success) {
-        alert("Saved Successfully!");
-        fetchEntries();
-      } else {
-        alert("Error saving");
-      }
-    } catch {
-      alert("Network error");
-    }
-  };
-
-  // ✅ Save ONLY Khaiwal details (name + whatsapp) — separate from game results
-  const handleSaveKhaiwal = async () => {
-    if (!khaiwalName.trim() && !whatsapp.trim()) {
-      alert("Please enter Khaiwal Name or WhatsApp Number");
-      return;
-    }
-
-    setSavingKhaiwal(true);
-    try {
-      const res = await fetch("/api/custom-games", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          email,
-          password,
-          date,
-          khaiwalName: khaiwalName.trim(),
-          whatsapp: whatsapp.trim(),
-        }),
-      });
-
-      const data = await res.json();
-      if (data.success) {
-        setSavedKhaiwal(data.khaiwal || null);
-        alert("Khaiwal Details Saved!");
-      } else {
-        alert("Error saving Khaiwal");
-      }
-    } catch {
-      alert("Network error");
-    } finally {
-      setSavingKhaiwal(false);
-    }
-  };
-
-  if (!isLoggedIn) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-100">
-        <div className="bg-white p-6 rounded-2xl shadow w-80">
-          <input
-            placeholder="Email"
-            className="border p-2 w-full mb-3"
-            onChange={(e) => setEmail(e.target.value)}
-          />
-          <input
-            placeholder="Password"
-            type="password"
-            className="border p-2 w-full mb-3"
-            onChange={(e) => setPassword(e.target.value)}
-          />
-          <button
-            className="bg-amber-500 text-white w-full py-2 rounded-xl"
-            onClick={handleLogin}
-          >
-            Login
-          </button>
-        </div>
-      </div>
-    );
+  }, [checkingSession, loggedIn]);
+  async function login(event: React.FormEvent) {
+    event.preventDefault(); setLoggingIn(true); setError("");
+    try { const response = await fetch("/api/admin/login", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(credentials) }); const data = await response.json(); if (!response.ok) throw new Error(data.error || "Invalid login"); authenticatedOnce.current = true; setLoggedIn(true); }
+    catch (err) { setError((err as Error).message); } finally { setLoggingIn(false); }
   }
-
-  return (
-    <div className="min-h-screen bg-gray-50 p-6">
-      <div className="max-w-4xl mx-auto bg-white rounded-2xl shadow p-6">
-
-        {/* ===== DATE ===== */}
-        <div className="mb-5">
-          <label className="font-bold">Date</label>
-          <input
-            type="date"
-            value={date}
-            onChange={(e) => setDate(e.target.value)}
-            className="border p-2 w-full rounded-xl mt-2"
-          />
-        </div>
-
-        {/* ===== KHAIWAL SECTION (SAME DESIGN THEME) ===== */}
-        <div className="mb-6 border border-gray-200 rounded-2xl p-5 bg-gray-50">
-          <h2 className="font-black text-lg mb-3">👤 Khaiwal Details</h2>
-
-          <input
-            placeholder="Khaiwal Name"
-            value={khaiwalName}
-            onChange={(e) => setKhaiwalName(e.target.value)}
-            className="border p-2 w-full mb-3 rounded-xl"
-          />
-
-          <input
-            placeholder="WhatsApp Number"
-            value={whatsapp}
-            onChange={(e) => setWhatsapp(e.target.value)}
-            className="border p-2 w-full rounded-xl"
-            maxLength={10}
-          />
-
-          {/* ✅ SEPARATE SAVE BUTTON FOR KHAIWAL */}
-          <button
-            onClick={handleSaveKhaiwal}
-            disabled={savingKhaiwal}
-            className="bg-green-600 disabled:opacity-60 text-white w-full py-2.5 rounded-xl mt-3 font-semibold"
-          >
-            {savingKhaiwal ? "Saving..." : "💾 Save Khaiwal Details"}
-          </button>
-
-          {/* ✅ SHOW CURRENTLY SAVED KHAIWAL VALUE */}
-          {savedKhaiwal && (savedKhaiwal.name || savedKhaiwal.whatsapp) && (
-            <div className="mt-3 bg-white border border-green-200 rounded-xl p-3 text-sm">
-              <p className="font-bold text-green-700 mb-1">Saved Khaiwal</p>
-              <p>👤 {savedKhaiwal.name || "-"}</p>
-              <p>📱 {savedKhaiwal.whatsapp || "-"}</p>
-            </div>
-          )}
-        </div>
-
-        {/* ===== GAME INPUTS ===== */}
-        {CUSTOM_GAMES.map((g) => (
-          <div key={g.key} className="mb-3">
-            <label className="font-semibold">{g.label}</label>
-            <input
-              value={values[g.key] || ""}
-              onChange={(e) =>
-                setValues({ ...values, [g.key]: e.target.value })
-              }
-              className="border p-2 w-full rounded-xl mt-1"
-            />
-          </div>
-        ))}
-
-        {/* SAVE BUTTON */}
-        <button
-          onClick={handleSave}
-          className="bg-amber-500 text-white w-full py-3 rounded-xl mt-4"
-        >
-          Save Result
-        </button>
-
-        {/* ===== LIST ===== */}
-        <div className="mt-8">
-          <h2 className="font-bold text-lg mb-3">Results</h2>
-
-          {entries.map((e, i) => (
-            <div
-              key={i}
-              className="border p-3 rounded-xl mb-2 bg-gray-50"
-            >
-              <p className="font-bold">{e.date}</p>
-              <p>
-                {e.game} → {e.value}
-              </p>
-
-              <p className="text-sm text-gray-600">
-                👤 {e.khaiwalName || "-"} | 📱 {e.whatsapp || "-"}
-              </p>
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
+  if (checkingSession) return <main className="min-h-screen bg-slate-950 px-4 flex items-center justify-center"><p className="font-bold text-white">Checking admin session…</p></main>;
+  if (!loggedIn) return <main className="min-h-screen bg-slate-950 px-4 flex items-center justify-center"><form onSubmit={login} className="w-full max-w-sm rounded-3xl bg-white p-7 shadow-2xl"><p className="text-xs font-bold uppercase tracking-[.25em] text-amber-600">Faridabad Satta</p><h1 className="mt-2 text-3xl font-black text-slate-900">Admin login</h1><p className="mt-1 text-sm text-slate-500">Use your admin-dashboard account.</p>{error && <p className="mt-4 rounded-xl bg-red-50 p-3 text-sm font-semibold text-red-700">{error}</p>}<label className="mt-6 block text-sm font-bold text-slate-700">Email</label><input required type="email" value={credentials.email} onChange={(e) => setCredentials({ ...credentials, email: e.target.value })} className="mt-2 w-full rounded-xl border border-slate-300 px-4 py-3 outline-none focus:border-amber-500" /><label className="mt-4 block text-sm font-bold text-slate-700">Password</label><input required type="password" value={credentials.password} onChange={(e) => setCredentials({ ...credentials, password: e.target.value })} className="mt-2 w-full rounded-xl border border-slate-300 px-4 py-3 outline-none focus:border-amber-500" /><button disabled={loggingIn} className="mt-6 w-full rounded-xl bg-amber-500 py-3 font-black text-white disabled:opacity-60">{loggingIn ? "Logging in…" : "Login"}</button></form></main>;
+  return <main className="min-h-screen bg-slate-100 px-3 py-6 sm:px-6"><div className="mx-auto max-w-6xl"><header className="rounded-3xl bg-slate-950 p-5 text-white shadow-lg sm:flex sm:items-center sm:justify-between"><div><p className="text-xs font-bold uppercase tracking-[.25em] text-amber-400">Admin panel</p><h1 className="mt-1 text-2xl font-black">Content management</h1></div><button onClick={() => { setLoggedIn(false); setCredentials({ email: "", password: "" }); }} className="mt-4 rounded-xl border border-white/20 px-4 py-2 text-sm font-bold sm:mt-0">Logout</button></header><nav className="my-5 grid grid-cols-3 gap-2 rounded-2xl bg-white p-2 shadow-sm">{([['khaiwal','Khaiwal Chart'],['results','Game Results'],['blogs','Create Blogs']] as [Tab,string][]).map(([key,label]) => <button key={key} onClick={() => setTab(key)} className={`rounded-xl px-2 py-3 text-sm font-black ${tab === key ? "bg-amber-500 text-white" : "text-slate-600 hover:bg-slate-100"}`}>{label}</button>)}</nav>{tab === "khaiwal" && <KhaiwalPanel credentials={credentials} />}{tab === "results" && <ResultsPanel credentials={credentials} />}{tab === "blogs" && <BlogsPanel credentials={credentials} />}</div></main>;
 }
+
+function KhaiwalPanel({ credentials }: { credentials: Credentials }) {
+  const date = "khaiwal-settings"; const [name, setName] = useState(""); const [whatsapp, setWhatsapp] = useState(""); const [message, setMessage] = useState(""); const [saving, setSaving] = useState(false);
+  const load = useCallback(async () => { const r = await fetch(`/api/custom-games?date=${date}`); const d = await r.json(); setName(d.khaiwal?.name || ""); setWhatsapp(d.khaiwal?.whatsapp || ""); }, [date]);
+  useEffect(() => { void load(); }, [load]);
+  async function save() { setSaving(true); setMessage(""); try { const r = await fetch("/api/custom-games", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ...credentials, date, khaiwalName: name.trim(), whatsapp: whatsapp.trim() }) }); const d = await r.json(); if (!r.ok) throw new Error(d.error); setMessage("Khaiwal chart updated successfully."); } catch (e) { setMessage((e as Error).message || "Update failed."); } finally { setSaving(false); } }
+  return <Panel title="Khaiwal chart update" subtitle="Update the Khaiwal name and WhatsApp number shown on the website."><Field label="Khaiwal name"><input value={name} onChange={(e) => setName(e.target.value)} className="admin-input" placeholder="Enter Khaiwal name" /></Field><Field label="WhatsApp number"><input value={whatsapp} onChange={(e) => setWhatsapp(e.target.value.replace(/\D/g, "").slice(0, 10))} className="admin-input" inputMode="numeric" placeholder="10-digit number" /></Field>{message && <Notice text={message} />}<SaveButton saving={saving} label="Update Khaiwal chart" onClick={save} /></Panel>;
+}
+
+function ResultsPanel({ credentials }: { credentials: Credentials }) {
+  const [date, setDate] = useState(todayIST()); const [game, setGame] = useState(""); const [result, setResult] = useState(""); const [declared, setDeclared] = useState<DeclaredResult[]>([]); const [message, setMessage] = useState(""); const [saving, setSaving] = useState(false);
+  const load = useCallback(async () => { const r = await fetch(`/api/admin/top-game-results?date=${date}`, { headers: { "x-admin-email": credentials.email, "x-admin-password": credentials.password }, cache: "no-store" }); const d = await r.json(); if (r.ok) setDeclared(d.results || []); }, [credentials, date]);
+  useEffect(() => { void load(); }, [load]);
+  async function save() { setSaving(true); setMessage(""); try { const r = await fetch("/api/admin/top-game-results", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ...credentials, date, game, result }) }); const d = await r.json(); if (!r.ok) throw new Error(d.error); setMessage(`${d.data.game} result ${d.data.result} declared successfully.`); setResult(""); setGame(""); await load(); } catch (e) { setMessage((e as Error).message || "Update failed."); } finally { setSaving(false); } }
+  function edit(item: DeclaredResult) { setGame(item.game); setResult(item.result); window.scrollTo({ top: 0, behavior: "smooth" }); }
+  async function remove(item: DeclaredResult) { if (!confirm(`Delete ${item.game} result ${item.result} for ${item.date}?`)) return; setMessage(""); const r = await fetch("/api/admin/top-game-results", { method: "DELETE", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ...credentials, game: item.game, date: item.date }) }); const d = await r.json(); if (!r.ok) return setMessage(d.error || "Delete failed."); setMessage(`${item.game} result deleted.`); if (game === item.game) { setGame(""); setResult(""); } await load(); }
+  return <Panel title="Declare game result" subtitle="Select the result date, choose a top game, and declare its number."><Field label="Select date"><input type="date" value={date} onChange={(e) => setDate(e.target.value)} className="admin-input" /></Field><Field label="Select game"><select value={game} onChange={(e) => setGame(e.target.value)} className="admin-input"><option value="">Choose a top game</option>{GAMES.map(([name,time]) => <option key={name} value={name}>{name} — {time}</option>)}</select></Field><Field label="Declare number"><input value={result} onChange={(e) => setResult(e.target.value.replace(/\D/g, "").slice(0, 2))} className="admin-input text-center text-3xl font-black tracking-widest" inputMode="numeric" placeholder="00" maxLength={2} /></Field>{message && <Notice text={message} />}<SaveButton saving={saving} label={declared.some((item) => item.game === game) ? "Update result" : "Declare result"} onClick={save} /><div className="mt-8 border-t border-slate-200 pt-6"><h3 className="text-lg font-black text-slate-900">Declared results for {date}</h3>{declared.length === 0 ? <p className="mt-3 text-sm text-slate-500">No results declared for this date.</p> : <div className="mt-4 space-y-3">{declared.map((item) => <div key={item.game} className="flex items-center gap-3 rounded-2xl border border-slate-200 p-3"><div className="min-w-0 flex-1"><strong className="block text-sm text-slate-900">{item.game}</strong><span className="text-xs text-slate-500">{item.time}</span></div><span className="text-2xl font-black text-amber-600">{item.result}</span><button type="button" onClick={() => edit(item)} className="rounded-lg bg-slate-900 px-3 py-2 text-xs font-bold text-white">Edit</button><button type="button" onClick={() => void remove(item)} className="rounded-lg bg-red-50 px-3 py-2 text-xs font-bold text-red-700">Delete</button></div>)}</div>}</div></Panel>;
+}
+
+function BlogsPanel({ credentials }: { credentials: Credentials }) {
+  const [form, setForm] = useState(EMPTY_BLOG); const [originalSlug, setOriginalSlug] = useState(""); const [posts, setPosts] = useState<Blog[]>([]); const [message, setMessage] = useState(""); const [saving, setSaving] = useState(false); const [uploading, setUploading] = useState(false); const editor = useRef<HTMLDivElement>(null);
+  const headers = useCallback(() => ({ "x-admin-email": credentials.email, "x-admin-password": credentials.password }), [credentials]); const load = useCallback(async () => { const r = await fetch("/api/admin/blogs", { headers: headers(), cache: "no-store" }); const d = await r.json(); if (r.ok) setPosts(d.posts || []); }, [headers]); useEffect(() => { void load(); }, [load]);
+  function field(name: keyof typeof EMPTY_BLOG, value: string) { setForm((f) => ({ ...f, [name]: value })); } function title(value: string) { setForm((f) => ({ ...f, title: value, slug: originalSlug ? f.slug : value.toLowerCase().replace(/[^a-z0-9\s-]/g, "").trim().replace(/\s+/g, "-") })); } function reset() { setForm(EMPTY_BLOG); setOriginalSlug(""); if (editor.current) editor.current.innerHTML = ""; }
+  async function save(e: React.FormEvent) { e.preventDefault(); setSaving(true); setMessage(""); try { const r = await fetch("/api/admin/blogs", { method: "POST", headers: { ...headers(), "Content-Type": "application/json" }, body: JSON.stringify({ ...form, originalSlug }) }); const d = await r.json(); if (!r.ok) throw new Error(d.error); setMessage(originalSlug ? "Blog updated successfully." : "Blog published successfully."); reset(); await load(); } catch (e) { setMessage((e as Error).message); } finally { setSaving(false); } }
+  async function upload(file?: File) { if (!file) return; setUploading(true); setMessage(""); try { const body = new FormData(); body.append("image", file); const r = await fetch("/api/admin/blog-images", { method: "POST", headers: headers(), body }); const d = await r.json(); if (!r.ok) throw new Error(d.error); field("image", d.url); setMessage("Image uploaded successfully."); } catch (e) { setMessage((e as Error).message); } finally { setUploading(false); } }
+  function format(command: string, value?: string) { editor.current?.focus(); document.execCommand(command, false, value); field("content", editor.current?.innerHTML || ""); }
+  function edit(post: Blog) { setOriginalSlug(post.slug); setForm({ title: post.title, slug: post.slug, metaTitle: post.metaTitle, metaDescription: post.metaDescription, image: post.image || "", content: post.content }); requestAnimationFrame(() => { if (editor.current) editor.current.innerHTML = post.content; }); window.scrollTo({ top: 0, behavior: "smooth" }); }
+  async function remove(post: Blog) { if (!confirm(`Delete “${post.title}”?`)) return; const r = await fetch("/api/admin/blogs", { method: "DELETE", headers: { ...headers(), "Content-Type": "application/json" }, body: JSON.stringify({ slug: post.slug }) }); const d = await r.json(); if (!r.ok) return setMessage(d.error); if (originalSlug === post.slug) reset(); setMessage("Blog deleted."); await load(); }
+  return <div className="grid gap-5 lg:grid-cols-[1.35fr_.65fr]"><form onSubmit={save} className="rounded-3xl bg-white p-5 shadow-sm sm:p-7"><h2 className="text-2xl font-black">{originalSlug ? "Edit blog post" : "Create blog post"}</h2><p className="mt-1 text-sm text-slate-500">Publish an article with search metadata and a featured image.</p>{message && <Notice text={message} />}<Field label="Title"><input required value={form.title} onChange={(e) => title(e.target.value)} className="admin-input" /></Field><Field label="Slug"><div className="flex overflow-hidden rounded-xl border border-slate-300"><span className="bg-slate-100 px-3 py-3 text-sm text-slate-500">/blog/</span><input required value={form.slug} onChange={(e) => field("slug", e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, "-"))} className="min-w-0 flex-1 px-3 outline-none" /></div></Field><Field label={`Meta title (${form.metaTitle.length}/70)`}><input required maxLength={70} value={form.metaTitle} onChange={(e) => field("metaTitle", e.target.value)} className="admin-input" /></Field><Field label={`Meta description (${form.metaDescription.length}/170)`}><textarea required maxLength={170} rows={3} value={form.metaDescription} onChange={(e) => field("metaDescription", e.target.value)} className="admin-input" /></Field><Field label="Featured image"><label className="block cursor-pointer rounded-xl border-2 border-dashed border-slate-300 p-4 text-center text-sm font-bold text-slate-600 hover:border-amber-500">{uploading ? "Uploading…" : form.image ? "Replace image" : "Choose image (max 5 MB)"}<input hidden type="file" accept="image/*" disabled={uploading} onChange={(e) => void upload(e.target.files?.[0])} /></label>{form.image && <img src={form.image} alt="Preview" className="mt-3 max-h-52 w-full rounded-xl object-cover" />}</Field><Field label="Content"><div className="overflow-hidden rounded-xl border border-slate-300"><div className="flex flex-wrap gap-1 border-b bg-slate-50 p-2">{[["bold","B"],["italic","I"],["underline","U"],["formatBlock","H2","h2"],["formatBlock","H3","h3"],["insertUnorderedList","• List"],["insertOrderedList","1. List"]].map(([cmd,label,value], i) => <button type="button" key={i} onMouseDown={(e) => e.preventDefault()} onClick={() => format(cmd, value)} className="rounded-lg border bg-white px-3 py-1.5 text-sm font-bold">{label}</button>)}</div><div ref={editor} contentEditable suppressContentEditableWarning onInput={(e) => field("content", e.currentTarget.innerHTML)} className="min-h-64 p-4 outline-none" /></div></Field><div className="flex gap-3"><button disabled={saving || uploading} className="rounded-xl bg-amber-500 px-6 py-3 font-black text-white disabled:opacity-60">{saving ? "Saving…" : originalSlug ? "Update blog" : "Publish blog"}</button>{originalSlug && <button type="button" onClick={reset} className="rounded-xl bg-slate-200 px-5 py-3 font-bold">Cancel</button>}</div></form><section className="h-fit rounded-3xl bg-white p-5 shadow-sm"><h2 className="text-xl font-black">Published blogs</h2><div className="mt-4 space-y-3">{posts.length === 0 ? <p className="text-sm text-slate-500">No blogs published yet.</p> : posts.map((post) => <article key={post.slug} className="rounded-2xl border p-3">{post.image && <img src={post.image} alt="" className="mb-3 h-28 w-full rounded-xl object-cover" />}<strong className="block text-sm">{post.title}</strong><span className="text-xs text-slate-500">/blog/{post.slug}</span><div className="mt-3 flex gap-2"><button onClick={() => edit(post)} className="rounded-lg bg-slate-900 px-3 py-2 text-xs font-bold text-white">Edit</button><button onClick={() => void remove(post)} className="rounded-lg bg-red-50 px-3 py-2 text-xs font-bold text-red-700">Delete</button></div></article>)}</div></section></div>;
+}
+
+function Panel({ title, subtitle, children }: { title: string; subtitle: string; children: React.ReactNode }) { return <section className="mx-auto max-w-3xl rounded-3xl bg-white p-5 shadow-sm sm:p-8"><h2 className="text-2xl font-black text-slate-900">{title}</h2><p className="mt-1 mb-6 text-sm text-slate-500">{subtitle}</p>{children}</section>; }
+function Field({ label, children }: { label: string; children: React.ReactNode }) { return <label className="mb-5 block"><span className="mb-2 block text-sm font-bold text-slate-700">{label}</span>{children}</label>; }
+function Notice({ text }: { text: string }) { return <p className={`my-4 rounded-xl p-3 text-sm font-semibold ${/success|uploaded|published|updated|deleted/i.test(text) ? "bg-green-50 text-green-700" : "bg-red-50 text-red-700"}`}>{text}</p>; }
+function SaveButton({ saving, label, onClick }: { saving: boolean; label: string; onClick: () => void }) { return <button type="button" onClick={onClick} disabled={saving} className="rounded-xl bg-amber-500 px-6 py-3 font-black text-white hover:bg-amber-600 disabled:opacity-60">{saving ? "Saving…" : label}</button>; }

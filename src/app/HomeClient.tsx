@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useRef } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { format } from "date-fns";
 import { FiClock, FiTrendingUp, FiZap, FiBarChart2, FiCalendar, FiChevronDown } from "react-icons/fi";
@@ -385,9 +386,112 @@ export default function HomeClient({ initialData }: { initialData: HomeData }) {
 
         {/* SEO */}
         <SeoContent lang={lang} />
+
+        {/* MongoDB blog posts */}
+        <BlogSection posts={initialData.blogs} lang={lang} />
       </div>
     </div>
   );
+}
+
+function BlogSection({
+  posts,
+  lang,
+}: {
+  posts: HomeData["blogs"];
+  lang: "hi" | "en";
+}) {
+  if (!posts.length) return null;
+
+  return (
+    <section className="sa opacity-0 translate-y-8" aria-labelledby="latest-blogs-heading">
+      <div className="mb-5 text-center">
+        <h2 id="latest-blogs-heading" className="text-2xl font-black tracking-tight text-gray-900 md:text-3xl">
+          {t("नवीनतम ब्लॉग", "Latest Blogs", lang)}
+        </h2>
+        <p className="mt-1 text-sm text-gray-500">
+          {t("हमारे नवीनतम लेख और अपडेट पढ़ें", "Read our latest articles and updates", lang)}
+        </p>
+      </div>
+
+      <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+        {posts.map((post) => (
+          <BlogCard key={post.id} post={post} lang={lang} />
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function BlogCard({
+  post,
+  lang,
+}: {
+  post: HomeData["blogs"][number];
+  lang: "hi" | "en";
+}) {
+  const content = plainText(post.content);
+  const previewLength = 220;
+  const canExpand = content.length > previewLength;
+  const visibleContent = canExpand ? `${content.slice(0, previewLength).trimEnd()}…` : content;
+
+  if (!post.slug) return null;
+
+  return (
+    <Link
+      href={`/blog/${encodeURIComponent(post.slug)}`}
+      aria-label={`${t("ब्लॉग पढ़ें", "Read blog", lang)}: ${post.title}`}
+      className="group block overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm transition duration-200 hover:-translate-y-1 hover:border-amber-300 hover:shadow-lg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-brand-deep)]"
+    >
+      <article>
+      {post.image && (
+        // Blog images are uploaded by the admin and served from MongoDB GridFS.
+        <div className="relative h-48 w-full">
+          <Image
+            src={post.image}
+            alt={post.title}
+            fill
+            sizes="(min-width: 1024px) 33vw, (min-width: 768px) 50vw, 100vw"
+            loading="lazy"
+            className="object-cover transition duration-300 group-hover:scale-[1.03]"
+          />
+        </div>
+      )}
+      <div className="p-5 md:p-6">
+        {post.createdAt && (
+          <time className="text-xs font-semibold uppercase tracking-wide text-gray-400" dateTime={post.createdAt}>
+            {new Intl.DateTimeFormat(lang === "hi" ? "hi-IN" : "en-IN", {
+              timeZone: "Asia/Kolkata",
+              day: "numeric",
+              month: "long",
+              year: "numeric",
+            }).format(new Date(post.createdAt))}
+          </time>
+        )}
+        <h3 className="mt-2 text-xl font-black text-gray-900 transition group-hover:text-amber-700">{post.title}</h3>
+        {content && (
+          <p className="mt-3 whitespace-pre-line text-sm leading-6 text-gray-600">{visibleContent}</p>
+        )}
+        <span className="mt-4 inline-flex rounded-lg bg-[var(--color-brand-deep)] px-4 py-2 text-sm font-bold text-white transition group-hover:opacity-90">
+          {t("और देखें", "See more", lang)}
+        </span>
+      </div>
+      </article>
+    </Link>
+  );
+}
+
+function plainText(content: string) {
+  return content
+    .replace(/<[^>]*>/g, " ")
+    .replace(/&nbsp;/gi, " ")
+    .replace(/&amp;/gi, "&")
+    .replace(/&lt;/gi, "<")
+    .replace(/&gt;/gi, ">")
+    .replace(/&quot;/gi, '"')
+    .replace(/&#39;/gi, "'")
+    .replace(/\s+/g, " ")
+    .trim();
 }
 
 function formatIstClock(date: Date): string {
@@ -679,7 +783,8 @@ function WhatsAppContactSection({
   lang: "hi" | "en";
   khaiwal: { name: string; whatsapp: string } | null;
 }) {
-  const phone = khaiwal?.whatsapp || "917015129958";
+  const savedPhone = (khaiwal?.whatsapp || "7015129958").replace(/\D/g, "");
+  const phone = savedPhone.length === 10 ? `91${savedPhone}` : savedPhone;
   const name = khaiwal?.name || "Har Har Mahadev";
   const games = [
     ["शिव गंगा", "Shiv Ganga", "12:15 PM"],

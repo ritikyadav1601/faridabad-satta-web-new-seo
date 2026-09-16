@@ -112,3 +112,17 @@ a, button {
 .animate-float {
   animation: floatBounce 2s ease-in-out infinite;
 }
+
+.admin-input {
+  width: 100%;
+  border: 1px solid #cbd5e1;
+  border-radius: 0.75rem;
+  padding: 0.75rem 1rem;
+  color: #0f172a;
+  background: #fff;
+  outline: none;
+}
+.admin-input:focus {
+  border-color: #f59e0b;
+  box-shadow: 0 0 0 3px rgb(245 158 11 / 15%);
+}

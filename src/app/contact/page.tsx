@@ -1,11 +1,13 @@
 import Link from "next/link";
 import { FaWhatsapp } from "react-icons/fa";
 import { FiClock, FiHeadphones } from "react-icons/fi";
+import { getKhaiwalSettings } from "@/lib/extra-games-mongodb";
 
-const WHATSAPP_NUMBER = "917355847700";
-
-export default function ContactPage() {
-  const whatsappLink = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(
+export default async function ContactPage() {
+  const khaiwal = await getKhaiwalSettings();
+  const whatsappNumber = (khaiwal?.whatsapp || "7015129958").replace(/\D/g, "");
+  const internationalNumber = whatsappNumber.startsWith("91") ? whatsappNumber : `91${whatsappNumber}`;
+  const whatsappLink = `https://wa.me/${internationalNumber}?text=${encodeURIComponent(
     "Hello, I need assistance with FaridabadSatta.com"
   )}`;
 
@@ -52,7 +54,7 @@ export default function ContactPage() {
               rel="noopener noreferrer"
               className="mt-1 inline-block text-2xl font-black text-green-700 hover:underline md:text-3xl"
             >
-              +91 73558 47700
+              +{internationalNumber}
             </a>
             <p className="mt-4 leading-7 text-gray-600">
               For the fastest assistance, please contact us through WhatsApp. You can also visit our{" "}

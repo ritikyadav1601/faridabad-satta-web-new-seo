@@ -5,11 +5,6 @@ const nextConfig: NextConfig = {
   async redirects() {
     return [
       {
-        source: "/blog/:path*",
-        destination: "/",
-        permanent: true,
-      },
-      {
         source: "/:path*",
         has: [{ type: "host", value: "faridabadsatta.com" }],
         destination: "https://www.faridabadsatta.com/:path*",
