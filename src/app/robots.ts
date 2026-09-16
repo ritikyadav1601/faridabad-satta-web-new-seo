@@ -13,7 +13,6 @@ export default function robots(): MetadataRoute.Robots {
           "/",
           "/api/game-chart",
           "/api/year-chart",
-          "/api/custom-games/chart",
         ],
         disallow: ["/api/"],
       },

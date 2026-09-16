@@ -1,16 +1,11 @@
 import Link from "next/link";
 import { FiCalendar, FiChevronLeft } from "react-icons/fi";
 import { fetchGameChartMonth } from "@/lib/chart-data";
-import { fetchCustomGameChartMonth } from "@/lib/custom-game-chart";
 import { MONTH_NAMES, MONTHS_IN_VIEW, getMonthsWindow, buildMonthColumn } from "@/lib/chart-format";
 import ChartTableClient from "./ChartTableClient";
 import ResultTimeBadge from "./ResultTimeBadge";
 import ChartAbout from "./ChartAbout";
 import { findGameResultTime } from "@/lib/chart-meta";
-
-// Custom games are served from a separate collection/API than the main
-// game-chart source (see src/lib/custom-game-chart.ts).
-const CUSTOM_GAME_KEYS = ["kohlapur", "manipur", "up-bazar", "palwal-city", "mathura-city"];
 
 // Revalidate periodically so today's result shows up without a full
 // rebuild, while still serving from cache for most requests — same pattern
@@ -24,7 +19,6 @@ export default async function GameChartPage({
 }) {
   const { gameCode } = await params;
   const gameName = gameCode.replace(/-/g, " ").toUpperCase();
-  const isCustomGame = CUSTOM_GAME_KEYS.includes(gameCode);
 
   const now = new Date();
   const anchorDate = new Date(now.getFullYear(), now.getMonth());
@@ -36,10 +30,6 @@ export default async function GameChartPage({
   const initialColumns = await Promise.all(
     months.map(async (date) => {
       try {
-        if (isCustomGame) {
-          const data = await fetchCustomGameChartMonth(gameCode, date.getMonth() + 1, date.getFullYear());
-          return buildMonthColumn(date, data.results);
-        }
         const data = await fetchGameChartMonth(gameCode, MONTH_NAMES[date.getMonth()], String(date.getFullYear()));
         return buildMonthColumn(date, data?.results);
       } catch {
@@ -76,7 +66,6 @@ export default async function GameChartPage({
         <ChartTableClient
           gameCode={gameCode}
           gameName={gameName}
-          isCustomGame={isCustomGame}
           initialColumns={initialColumns}
           initialAnchorYear={anchorDate.getFullYear()}
           initialAnchorMonth={anchorDate.getMonth()}

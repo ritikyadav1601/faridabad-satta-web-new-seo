@@ -4,8 +4,8 @@ import { TOP_GAME_DEFS } from "./top-games";
 // gameCode). This is the deliberately curated, hand-written set of chart
 // pages — used both for their <title>/description in
 // src/app/chart/[gameCode]/layout.tsx, and to build the sitemap's chart
-// route list (src/app/sitemap.ts) alongside the promoted TOP_GAME_DEFS and
-// the 5 "custom" games. Anything scraped from the live homepage feed but
+// route list (src/app/sitemap.ts) alongside the promoted TOP_GAME_DEFS.
+// Anything scraped from the live homepage feed but
 // NOT one of these slugs still works if visited directly — it's just not
 // advertised in the sitemap, since that long tail of near-duplicate scraped
 // markets was diluting crawl budget across ~200 thin pages instead of the
@@ -126,11 +126,6 @@ export const CHART_META: Record<string, { title: string; description: string }> 
     title: "Ghaziabad King Satta King Chart",
     description:
       "Check Ghaziabad King Satta King chart, historical records, and today's updated results.",
-  },
-  "mathura-city": {
-    title: "Mathura Satta King Chart",
-    description:
-      "View Mathura Satta King chart with daily results, old charts, and complete record history.",
   },
 };
 

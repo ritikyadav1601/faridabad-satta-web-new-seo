@@ -25,14 +25,11 @@ function toSlug(name: string): string {
 }
 
 // Games that always exist on the homepage, regardless of what MongoDB returns.
-const FIXED_GAME_NAMES = [
-  ...TOP_GAME_DEFS.map((game) => game.name),
-  "kohlapur", "manipur", "up-bazar", "palwal-city", "mathura-city",
-];
+const FIXED_GAME_NAMES = TOP_GAME_DEFS.map((game) => game.name);
 
 // The sitemap's chart routes are the deliberately curated set: the promoted
-// homepage games, the 5 "custom" games, and every slug with hand-written SEO
-// metadata in CHART_META. This used to also merge in every game name from
+// homepage games and every slug with hand-written SEO metadata in
+// CHART_META. This used to also merge in every game name from
 // the live homepage feed (getHomepageFromMongo/getSK24GamesFromMongo) and
 // the SK24 source, which pulled in ~200 scraped, non-curated market names
 // with no unique metadata. Search Console showed the cost of that: 215 of

@@ -13,7 +13,6 @@ import {
 interface ChartTableClientProps {
   gameCode: string;
   gameName: string;
-  isCustomGame: boolean;
   initialColumns: MonthColumn[];
   initialAnchorYear: number;
   initialAnchorMonth: number; // 0-11
@@ -26,7 +25,6 @@ interface ChartTableClientProps {
 export default function ChartTableClient({
   gameCode,
   gameName,
-  isCustomGame,
   initialColumns,
   initialAnchorYear,
   initialAnchorMonth,
@@ -39,9 +37,7 @@ export default function ChartTableClient({
 
   const fetchMonth = async (date: Date): Promise<MonthColumn> => {
     try {
-      const url = isCustomGame
-        ? `/api/custom-games/chart?game=${gameCode}&month=${date.getMonth() + 1}&year=${date.getFullYear()}`
-        : `/api/game-chart?slug=${gameCode}&month=${MONTH_NAMES[date.getMonth()]}&year=${date.getFullYear()}`;
+      const url = `/api/game-chart?slug=${gameCode}&month=${MONTH_NAMES[date.getMonth()]}&year=${date.getFullYear()}`;
       const res = await fetch(url);
       const data = await res.json();
       return buildMonthColumn(date, data.success ? data.results : undefined);
