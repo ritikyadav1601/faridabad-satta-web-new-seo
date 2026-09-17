@@ -1,20 +1,27 @@
 import HomeClient from "./HomeClient";
 import { getHomeData } from "@/lib/home-data";
+import { getHomepageSeoContent } from "@/lib/homepage-seo";
 import type { Metadata } from "next";
 import { unstable_cache } from "next/cache";
 import { SITE_URL } from "@/lib/site";
 
-export function generateMetadata(): Metadata {
-  const today = new Intl.DateTimeFormat("en-GB", {
-    timeZone: "Asia/Kolkata",
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-  }).format(new Date());
+// Cache the MongoDB aggregation briefly. The client still
+// refreshes every 20 seconds, while repeat requests can use a fast server cache.
+const getCachedHomeData = unstable_cache(getHomeData, ["homepage-data"], {
+  revalidate: 20,
+  tags: ["homepage-data"],
+});
 
-  const title = `Satta King Today ${today} | Faridabad`;
-  const description =
-    "Check today's Faridabad Satta King result plus Gali, Ghaziabad, Delhi Bazar and Desawar updates, daily charts and old records.";
+// Same idea for the admin-editable homepage SEO (title/description/content) —
+// short server cache, and the admin save handler calls revalidatePath("/")
+// so an update shows up right away instead of waiting out the window.
+const getCachedHomepageSeo = unstable_cache(getHomepageSeoContent, ["homepage-seo-content"], {
+  revalidate: 20,
+  tags: ["homepage-data"],
+});
+
+export async function generateMetadata(): Promise<Metadata> {
+  const { metaTitle: title, metaDescription: description } = await getCachedHomepageSeo();
 
   return {
     title: { absolute: title },
@@ -25,16 +32,9 @@ export function generateMetadata(): Metadata {
   };
 }
 
-// Cache the MongoDB aggregation briefly. The client still
-// refreshes every 20 seconds, while repeat requests can use a fast server cache.
-const getCachedHomeData = unstable_cache(getHomeData, ["homepage-data"], {
-  revalidate: 20,
-  tags: ["homepage-data"],
-});
-
 export const revalidate = 20;
 
 export default async function HomePage() {
-  const initialData = await getCachedHomeData();
-  return <HomeClient initialData={initialData} />;
+  const [initialData, seo] = await Promise.all([getCachedHomeData(), getCachedHomepageSeo()]);
+  return <HomeClient initialData={initialData} seoContent={seo.content} />;
 }

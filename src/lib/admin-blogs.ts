@@ -25,12 +25,20 @@ export function sanitizeBlogHtml(value = "") {
     .replace(/<!--[\s\S]*?-->/g, "")
     .replace(/<(script|style|iframe|object|embed|form|input|button|svg)\b[^>]*>[\s\S]*?<\/\1\s*>/gi, "")
     .replace(/<(script|style|iframe|object|embed|form|input|button|svg)\b[^>]*\/?\s*>/gi, "");
-  const allowed = new Set(["p", "br", "h2", "h3", "strong", "b", "em", "i", "u", "ul", "ol", "li", "blockquote", "a"]);
+  // "img" is allowed so inline images inserted through the Tiptap editor
+  // survive saving — it previously wasn't in this list (left over from
+  // when the old editor had no way to insert images at all), which silently
+  // stripped every inline/clickable image out of post bodies on save.
+  const allowed = new Set(["p", "br", "h2", "h3", "strong", "b", "em", "i", "u", "ul", "ol", "li", "blockquote", "a", "img"]);
   html = html.replace(/<\/?([a-z0-9]+)([^>]*)>/gi, (match, tagName, attributes) => {
     const tag = String(tagName).toLowerCase();
     if (!allowed.has(tag)) return "";
     if (match.startsWith("</")) return `</${tag}>`;
     if (tag === "br") return "<br>";
+    if (tag === "img") {
+      const src = String(attributes).match(/\bsrc\s*=\s*["']([^"']+)["']/i)?.[1] || "";
+      return /^(https?:\/\/|\/)/i.test(src) ? `<img src="${src.replace(/["<>]/g, "")}" alt="">` : "";
+    }
     if (tag !== "a") return `<${tag}>`;
     const href = String(attributes).match(/\bhref\s*=\s*["']([^"']+)["']/i)?.[1] || "";
     return /^(https?:\/\/|\/)/i.test(href) ? `<a href="${href.replace(/["<>]/g, "")}" rel="noopener noreferrer">` : "<a>";

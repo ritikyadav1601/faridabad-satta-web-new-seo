@@ -89,7 +89,7 @@ function CardSkeleton() {
 
 // ─── Main Page ───
 
-export default function HomeClient({ initialData }: { initialData: HomeData }) {
+export default function HomeClient({ initialData, seoContent }: { initialData: HomeData; seoContent: string }) {
   // The server provides the first render. Keeping these as props (instead of
   // one-time state) lets router.refresh() render the newly saved DB values.
   const router = useRouter();
@@ -385,7 +385,7 @@ export default function HomeClient({ initialData }: { initialData: HomeData }) {
         </div>
 
         {/* SEO */}
-        <SeoContent lang={lang} />
+        <SeoContent content={seoContent} />
 
         {/* MongoDB blog posts */}
         <BlogSection posts={initialData.blogs} lang={lang} />
@@ -1076,112 +1076,11 @@ function MonthlyChartSection({
 
 // ─── SEO Content ───
 
-function SeoContent({ lang }: { lang: "hi" | "en" }) {
-  const today = new Intl.DateTimeFormat("en-GB", {
-    timeZone: "Asia/Kolkata",
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-  }).format(new Date());
-
+function SeoContent({ content }: { content: string }) {
   return (
-    <article className="sa opacity-0 translate-y-8 rounded-2xl border border-gray-200 bg-gray-50 p-5 text-sm leading-relaxed text-gray-600 md:p-8">
-      <header className="mb-7">
-        <h2 className="text-2xl font-black tracking-tight text-gray-900 md:text-3xl">
-          Satta King Result Today {today} | Faridabad Satta Live Updates
-        </h2>
-        <p className="mt-3">
-          Welcome to <strong className="text-gray-900">FaridabadSatta.com</strong>, your trusted source for daily satta king and faridabad satta information. Our platform provides timely result updates, organized archives, and easy access to regional charts. Whether you are checking today&apos;s updates or exploring previous records, everything is arranged in a simple, user-friendly format that works smoothly across all devices.
-        </p>
-      </header>
-
-      <SeoSection title="About FaridabadSatta.com">
-        <p>FaridabadSatta.com is an independent information portal focused on publishing satta king and faridabad satta records in a well-organized manner. We maintain historical charts, regional archives, and daily updates so visitors can quickly find the information they need. Every page is designed for fast loading, easy navigation, and a better browsing experience on desktop and mobile devices.</p>
-        <p>Our website also provides archives for Delhi Bazar, Ghaziabad, Gali, Disawar, Shree Ganesh, Old Alwar, and many other popular categories. Instead of searching across multiple websites, users can browse everything from one organized platform.</p>
-      </SeoSection>
-
-      <SeoSection title={`Latest Satta King Result Today (${today})`}>
-        <p>The latest satta king result today is updated after the official publishing schedule. Visitors looking for the daily faridabad satta result can access today&apos;s information through our live result section without unnecessary delays. Our goal is to make daily updates available quickly while maintaining organized records for future reference.</p>
-        <p>Along with today&apos;s faridabad satta result, we provide updates for multiple regional categories through our All Game section. Every result page helps users locate the latest numbers and previous daily records.</p>
-      </SeoSection>
-
-      <SeoSection title="Regional Results & Historical Archives">
-        <p>Our archive section is designed for users who want to explore previous satta king and faridabad satta records. Historical charts are arranged by month, year, and regional category, making older entries easy to browse.</p>
-        <div className="mt-4 grid gap-3 md:grid-cols-2">
-          <ArchiveItem title="Faridabad Satta Results">Daily updates with complete monthly and yearly records, including today&apos;s result and historical charts.</ArchiveItem>
-          <ArchiveItem title="Delhi Bazar Results">Regularly updated daily records and historical chart collections in organized tables.</ArchiveItem>
-          <ArchiveItem title="Ghaziabad Results">Complete daily records and long-term charts arranged in chronological order.</ArchiveItem>
-          <ArchiveItem title="Gali Results">Organized daily, monthly, and yearly archives that make specific dates easy to locate.</ArchiveItem>
-          <ArchiveItem title="Disawar Results">Regularly updated records supported by charts from previous months and years.</ArchiveItem>
-        </div>
-      </SeoSection>
-
-      <SeoSection title="All Game Satta Result Overview">
-        <p>FaridabadSatta.com is a central destination for satta king, faridabad satta, and regional chart records. Users can access Delhi Bazar, Ghaziabad, Gali, Disawar, Shree Ganesh, Old Alwar, and other archives from one platform. Every result section is categorized to improve navigation and provide a consistent browsing experience across desktop and mobile devices.</p>
-      </SeoSection>
-
-      <SeoSection title="News & Website Updates">
-        <p>We continuously improve the platform to provide faster access during peak traffic hours. Recent improvements include better archive navigation, enhanced mobile compatibility, and simplified result pages, making historical records and previous dates easier to locate.</p>
-      </SeoSection>
-
-      <SeoSection title="Educational Articles">
-        <div className="grid gap-3 md:grid-cols-2">
-          <ArchiveItem title="Understanding Satta King Historical Charts">Historical records show how archived data is organized over time. Structured tables make it easier to navigate and compare dates.</ArchiveItem>
-          <ArchiveItem title="How to Read Faridabad Satta Charts">Faridabad archives use a simple table format to display dates and published records, helping visitors browse monthly archives and locate historical information.</ArchiveItem>
-        </div>
-      </SeoSection>
-
-      <SeoSection title="Why Choose FaridabadSatta.com">
-        <p>FaridabadSatta.com focuses on speed, organization, and user convenience. The platform combines daily updates, historical archives, regional result sections, and organized chart collections in one clean, responsive website.</p>
-      </SeoSection>
-
-      <SeoSection title="Frequently Asked Questions">
-        <div className="divide-y divide-gray-200 rounded-xl border border-gray-200 bg-white px-4">
-          <FaqItem question="Where can I check today's Satta King result?">The latest result is available on the homepage in the live result section, with links to previous historical records.</FaqItem>
-          <FaqItem question="When is the Faridabad Satta result updated?">It is generally updated around the scheduled evening announcement. Check the homepage shortly after the official timing.</FaqItem>
-          <FaqItem question="Does the website provide All Game Satta records?">Yes. Archives include Faridabad, Delhi Bazar, Ghaziabad, Gali, Disawar, Shree Ganesh, Old Alwar, and other regional categories.</FaqItem>
-          <FaqItem question="Can I browse previous charts?">Yes. Historical records are available through organized monthly and yearly chart collections.</FaqItem>
-          <FaqItem question="Is registration required?">No. Results, archives, and historical records can be viewed without creating an account.</FaqItem>
-        </div>
-      </SeoSection>
-
-      <section className="mt-7 rounded-xl border border-red-200 bg-red-50 p-4 text-red-700">
-        <h3 className="text-lg font-bold text-red-800">Disclaimer</h3>
-        <p className="mt-2">FaridabadSatta.com is an independent informational website created to organize publicly available satta king and faridabad satta records. The website does not promote, support, or facilitate gambling, betting, or any illegal activity in any form.</p>
-        <p className="mt-2">All charts, archives, historical records, and regional information are intended solely for informational, educational, and historical reference purposes. Visitors are encouraged to comply with all applicable laws and regulations in their jurisdictions.</p>
-      </section>
-    </article>
-  );
-}
-
-function SeoSection({ title, children }: { title: string; children: React.ReactNode }) {
-  return (
-    <section className="mt-7 space-y-3">
-      <h3 className="text-xl font-black text-gray-900 md:text-2xl">{title}</h3>
-      {children}
-    </section>
-  );
-}
-
-function ArchiveItem({ title, children }: { title: string; children: React.ReactNode }) {
-  return (
-    <div className="rounded-xl border border-gray-200 bg-white p-4">
-      <h4 className="font-bold text-gray-900">{title}</h4>
-      <p className="mt-1">{children}</p>
-    </div>
-  );
-}
-
-function FaqItem({ question, children }: { question: string; children: React.ReactNode }) {
-  return (
-    <details className="group py-4">
-      <summary className="cursor-pointer list-none font-bold text-gray-900 marker:hidden">
-        <span className="flex items-center justify-between gap-4">
-          {question}
-          <FiChevronDown className="shrink-0 transition-transform group-open:rotate-180" />
-        </span>
-      </summary>
-      <p className="mt-2 pr-8">{children}</p>
-    </details>
+    <article
+      className="sa opacity-0 translate-y-8 rounded-2xl border border-gray-200 bg-gray-50 p-5 text-sm leading-relaxed text-gray-600 md:p-8 [&_a]:font-semibold [&_a]:text-blue-700 [&_a]:underline [&_blockquote]:border-l-4 [&_blockquote]:border-amber-400 [&_blockquote]:pl-4 [&_h2]:text-2xl [&_h2]:font-black [&_h2]:tracking-tight [&_h2]:text-gray-900 [&_h2]:md:text-3xl [&_h3]:mt-7 [&_h3]:text-xl [&_h3]:font-black [&_h3]:text-gray-900 [&_h3]:md:text-2xl [&_img]:my-3 [&_img]:h-auto [&_img]:max-w-full [&_img]:rounded-xl [&_li]:ml-6 [&_ol]:list-decimal [&_p]:my-3 [&_ul]:list-disc"
+      dangerouslySetInnerHTML={{ __html: content }}
+    />
   );
 }

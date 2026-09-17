@@ -78,7 +78,7 @@ export default async function BlogPage({ params }: BlogPageProps) {
           )}
           <h1 className="mt-2 text-3xl font-black tracking-tight text-gray-900 md:text-5xl">{post.title}</h1>
           <div
-            className="mt-6 text-base leading-8 text-gray-700 [&_a]:font-semibold [&_a]:text-blue-700 [&_a]:underline [&_blockquote]:border-l-4 [&_blockquote]:border-amber-400 [&_blockquote]:pl-4 [&_h2]:mt-8 [&_h2]:text-2xl [&_h2]:font-black [&_h3]:mt-6 [&_h3]:text-xl [&_h3]:font-bold [&_li]:ml-6 [&_ol]:list-decimal [&_p]:my-4 [&_ul]:list-disc"
+            className="mt-6 text-base leading-8 text-gray-700 [&_a]:font-semibold [&_a]:text-blue-700 [&_a]:underline [&_blockquote]:border-l-4 [&_blockquote]:border-amber-400 [&_blockquote]:pl-4 [&_h2]:mt-8 [&_h2]:text-2xl [&_h2]:font-black [&_h3]:mt-6 [&_h3]:text-xl [&_h3]:font-bold [&_img]:my-4 [&_img]:h-auto [&_img]:max-w-full [&_img]:rounded-xl [&_li]:ml-6 [&_ol]:list-decimal [&_p]:my-4 [&_ul]:list-disc"
             dangerouslySetInnerHTML={{ __html: post.content }}
           />
         </div>
