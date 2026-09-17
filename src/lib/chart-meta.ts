@@ -47,85 +47,52 @@ export const CHART_META: Record<string, { title: string; description: string }> 
     description:
       "Find Choti Gali Satta King chart, live results, old charts, and historical records updated daily.",
   },
-  desawer: {
-    title: "Desawer Satta King Chart",
-    description:
-      "Check Desawer Satta King chart, daily results, old charts, and complete record history.",
-  },
-  "shiv-dham": {
-    title: "Shiv Dham Satta King Chart",
-    description:
-      "View Shiv Dham Satta King chart with today's results, historical records, and daily updates.",
-  },
-  "pushkar-bazar": {
-    title: "Pushkar Bazar Satta King Chart",
-    description:
-      "Get the latest Pushkar Bazar Satta King chart, old records, and daily result updates.",
-  },
-  "delhi-metro": {
-    title: "Delhi Metro Satta King Chart",
-    description:
-      "Delhi Metro Satta King chart with today's result, old charts, and complete historical records.",
-  },
-  "shri-sayam": {
-    title: "Shri Sayam Satta King Chart",
-    description:
-      "Check Shri Sayam Satta King chart, historical records, and today's updated results.",
-  },
-  kolmbia: {
-    title: "Kolmbia Satta King Chart",
-    description:
-      "View Kolmbia Satta King chart with daily results, old charts, and complete chart history.",
-  },
-  "makka-madina": {
-    title: "Makka Madina Satta King Chart",
-    description:
-      "Find Makka Madina Satta King chart, latest results, old records, and complete history.",
-  },
-  "kalka-night": {
-    title: "Kalka Night Satta King Chart",
-    description:
-      "Kalka Night Satta King chart featuring today's result, old records, and chart history.",
-  },
-  "shirdi-dham": {
-    title: "Shirdi Dham Satta King Chart",
-    description:
-      "View Shirdi Dham Satta King chart with updated results, historical charts, and daily records.",
-  },
-  "delhi-darbar": {
-    title: "Delhi Darbar Satta King Chart",
-    description:
-      "Delhi Darbar Satta King chart with latest results, old records, and complete chart history.",
-  },
-  kaliyar: {
-    title: "Kaliyar Satta King Chart",
-    description:
-      "Check Kaliyar Satta King chart, daily results, historical records, and old charts.",
-  },
-  "new-ganga": {
-    title: "New Ganga Satta King Chart",
-    description:
-      "New Ganga Satta King chart with today's results, old records, and complete history.",
-  },
   fatehabad: {
     title: "Fatehabad Satta King Chart",
     description:
       "View Fatehabad Satta King chart, daily results, old records, and updated chart history.",
   },
-  "shakti-peeth": {
-    title: "Shakti Peeth Satta King Chart",
+
+  // Added 2026-09-17: promoted from the long-tail scraped feed after
+  // confirming (a) their monthly chart cache is well-populated with real
+  // historical results (85%+ of past days, not "XX"), unlike the games
+  // removed above, and (b) each has visible external search demand —
+  // dedicated result pages on other satta-result sites — so they're worth
+  // the sitemap/crawl-budget spend.
+  taj: {
+    title: "Taj Satta King Chart",
     description:
-      "Find Shakti Peeth Satta King chart, latest results, historical charts, and daily updates.",
+      "Check Taj Satta King chart, daily results, old records, and complete chart history on Faridabad Satta.",
   },
-  "mandi-bazar": {
-    title: "Mandi Bazar Satta King Chart",
+  "shri-laxmi": {
+    title: "Shri Laxmi Satta King Chart",
     description:
-      "Mandi Bazar Satta King chart with today's result, old records, and complete history.",
+      "View Shri Laxmi Satta King chart with today's result, old records, and complete historical data.",
   },
-  "ghaziabad-king": {
-    title: "Ghaziabad King Satta King Chart",
+  gurgaon: {
+    title: "Gurgaon Satta King Chart",
     description:
-      "Check Ghaziabad King Satta King chart, historical records, and today's updated results.",
+      "Check Gurgaon Satta King chart, daily results, old records, and complete chart history.",
+  },
+  nagpur: {
+    title: "Nagpur Satta King Chart",
+    description:
+      "View Nagpur Satta King chart with today's result, old records, and complete historical data.",
+  },
+  "rajdhani-jaipur": {
+    title: "Rajdhani Jaipur Satta King Chart",
+    description:
+      "Check Rajdhani Jaipur Satta King chart, daily results, old records, and complete chart history.",
+  },
+  "gali-disawar-mix": {
+    title: "Gali Disawar Mix Satta King Chart",
+    description:
+      "View Gali Disawar Mix Satta King chart with today's result, old records, and complete historical data.",
+  },
+  "new-punjab": {
+    title: "New Punjab Satta King Chart",
+    description:
+      "Check New Punjab Satta King chart, daily results, old records, and complete chart history.",
   },
 };
 
