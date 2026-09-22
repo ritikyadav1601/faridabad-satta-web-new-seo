@@ -3,6 +3,7 @@ import { SITE_URL } from "@/lib/site";
 import { TOP_GAME_DEFS } from "@/lib/top-games";
 import { getTopGameAvailableYearsFromMongo } from "@/lib/top-games-mongodb";
 import { CHART_META } from "@/lib/chart-meta";
+import { getPublishedBlogSlugs } from "@/lib/blogs-mongodb";
 
 // Refresh the sitemap at most every hour.
 export const revalidate = 3600;
@@ -79,5 +80,20 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     }));
   });
 
-  return [...staticRoutes, ...chartRoutes, ...yearlyChartRoutes];
+  // ─── Blog posts ───
+  // Previously missing entirely: published posts had no sitemap entry and
+  // no dedicated index page linking to them, so only whatever the
+  // homepage's rotating "Latest Blogs" section happened to show (max 12,
+  // newest-first) was ever discoverable by Google. Older posts fell off
+  // silently as newer ones were published. This makes every published post
+  // discoverable regardless of homepage rotation.
+  const blogSlugs = await getPublishedBlogSlugs();
+  const blogRoutes: MetadataRoute.Sitemap = blogSlugs.map(({ slug, updatedAt }) => ({
+    url: `${SITE_URL}/blog/${encodeURIComponent(slug)}`,
+    lastModified: updatedAt ? new Date(updatedAt) : undefined,
+    changeFrequency: "monthly" as const,
+    priority: 0.6,
+  }));
+
+  return [...staticRoutes, ...chartRoutes, ...yearlyChartRoutes, ...blogRoutes];
 }

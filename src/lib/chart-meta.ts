@@ -96,6 +96,56 @@ export const CHART_META: Record<string, { title: string; description: string }> 
   },
 };
 
+// Full curated slug list (promoted TOP_GAME_DEFS games + every hand-written
+// CHART_META entry) — the same set the sitemap advertises. Used to build
+// "Related Charts" cross-links on each chart page so internal link equity
+// isn't 100% funneled through the homepage (previously the only page
+// linking to /chart/[gameCode] routes at all).
+function slugify(name: string): string {
+  return name.toLowerCase().trim().replace(/\s+/g, "-");
+}
+
+function titleCaseSlug(slug: string): string {
+  return slug
+    .replace(/-/g, " ")
+    .split(" ")
+    .filter(Boolean)
+    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+    .join(" ");
+}
+
+const CURATED_CHART_SLUGS: string[] = Array.from(
+  new Set<string>([...TOP_GAME_DEFS.map((g) => slugify(g.name)), ...Object.keys(CHART_META)])
+)
+  // Stable, deterministic order (not insertion order) so the "related
+  // games" window below is consistent across page renders/deploys.
+  .sort();
+
+// Deterministic "related games" pick for a given chart page: a window of
+// `count` other curated games starting right after this one in the sorted
+// slug list, wrapping around. Every curated page ends up both linking out
+// to, and being linked from, a handful of others — spreading internal link
+// equity around the site instead of it all pooling on the homepage.
+export function getRelatedGames(
+  currentSlug: string,
+  count = 4
+): { slug: string; label: string }[] {
+  const slugs = CURATED_CHART_SLUGS.filter((s) => s !== currentSlug);
+  if (slugs.length === 0) return [];
+
+  const startIndex = CURATED_CHART_SLUGS.indexOf(currentSlug);
+  const start = startIndex === -1 ? 0 : startIndex % slugs.length;
+  const picked: string[] = [];
+  for (let i = 0; i < Math.min(count, slugs.length); i++) {
+    picked.push(slugs[(start + i) % slugs.length]);
+  }
+
+  return picked.map((slug) => ({
+    slug,
+    label: CHART_META[slug]?.title.replace(/\s*(Result Chart & Old Records|Satta King Chart)$/, "") || titleCaseSlug(slug),
+  }));
+}
+
 function normalise(value: string) {
   return value.toLowerCase().replace(/[^a-z0-9]/g, "");
 }

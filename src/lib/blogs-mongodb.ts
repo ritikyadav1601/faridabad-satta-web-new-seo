@@ -47,6 +47,50 @@ export async function getPublishedBlogs(): Promise<BlogPost[]> {
   return getPublishedBlogsInternal(12);
 }
 
+// Every published post, for the /blog index page and the sitemap — unlike
+// getPublishedBlogs() (capped at 12, for the homepage's "Latest Blogs"
+// rotation), this is the full archive so older posts stay discoverable
+// and indexable instead of falling off the homepage and becoming orphaned.
+export async function getAllPublishedBlogs(): Promise<BlogPost[]> {
+  return getPublishedBlogsInternal(500);
+}
+
+export interface BlogSitemapEntry {
+  slug: string;
+  updatedAt: string;
+}
+
+// Lightweight slug + updatedAt list for the sitemap — avoids pulling full
+// post content/images just to build sitemap <url> entries.
+export async function getPublishedBlogSlugs(): Promise<BlogSitemapEntry[]> {
+  const client = getClient();
+  if (!client) return [];
+
+  try {
+    const db = (await client).db(process.env.TOP_GAMES_MONGODB_DB || undefined);
+    const posts = await db
+      .collection<Record<string, unknown>>(process.env.BLOG_POSTS_COLLECTION || "blogposts")
+      .find({ published: true })
+      .project({ slug: 1, updatedAt: 1, createdAt: 1 })
+      .sort({ createdAt: -1, _id: -1 })
+      .limit(500)
+      .toArray();
+
+    return posts
+      .map((post) => ({
+        slug: String(post.slug || ""),
+        updatedAt:
+          post.updatedAt instanceof Date
+            ? post.updatedAt.toISOString()
+            : String(post.updatedAt || post.createdAt || ""),
+      }))
+      .filter((entry) => entry.slug);
+  } catch (error) {
+    console.error("[blogs-mongodb] Failed to read blog slugs:", (error as Error).message);
+    return [];
+  }
+}
+
 async function getPublishedBlogsInternal(limit: number): Promise<BlogPost[]> {
   const client = getClient();
   if (!client) return [];

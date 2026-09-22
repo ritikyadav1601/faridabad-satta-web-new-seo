@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import Link from "next/link";
 import { getPublishedBlogBySlug } from "@/lib/blogs-mongodb";
 import { SITE_URL } from "@/lib/site";
 
@@ -60,6 +61,15 @@ export default async function BlogPage({ params }: BlogPageProps) {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData).replace(/</g, "\\u003c") }}
       />
+      <nav aria-label="Breadcrumb" className="text-sm text-gray-500">
+        <ol className="flex flex-wrap items-center gap-2">
+          <li><Link href="/" className="hover:text-blue-700">Home</Link></li>
+          <li aria-hidden="true">/</li>
+          <li><Link href="/blog" className="hover:text-blue-700">Blog</Link></li>
+          <li aria-hidden="true">/</li>
+          <li aria-current="page" className="font-semibold text-gray-800">{post.title}</li>
+        </ol>
+      </nav>
       <article className="mt-5 overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
         {post.image && (
           // eslint-disable-next-line @next/next/no-img-element

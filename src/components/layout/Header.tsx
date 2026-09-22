@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 const NAV_LINKS = [
   { href: "/", label: "Home" },
   { href: "/charts", label: "Charts" },
+  { href: "/blog", label: "Blog" },
   { href: "/about", label: "About" },
   { href: "/complaint", label: "Complaint" },
 ];
@@ -21,7 +22,7 @@ export function Header() {
     <header className="sticky top-0 z-50 border-b border-slate-200 bg-white text-slate-900 shadow-lg shadow-slate-950/10">
       <div className="mx-auto max-w-4xl px-2 sm:px-4">
         <div className="flex h-14 items-center md:h-16">
-          <nav className="grid w-full grid-cols-4 gap-1.5" aria-label="Main navigation">
+          <nav className="grid w-full grid-cols-5 gap-1.5" aria-label="Main navigation">
             {NAV_LINKS.map((link) => {
               const active = isActive(link.href);
               return (

@@ -5,7 +5,8 @@ import { MONTH_NAMES, MONTHS_IN_VIEW, getMonthsWindow, buildMonthColumn } from "
 import ChartTableClient from "./ChartTableClient";
 import ResultTimeBadge from "./ResultTimeBadge";
 import ChartAbout from "./ChartAbout";
-import { findGameResultTime } from "@/lib/chart-meta";
+import RelatedCharts from "./RelatedCharts";
+import { findGameResultTime, getRelatedGames } from "@/lib/chart-meta";
 
 // Revalidate periodically so today's result shows up without a full
 // rebuild, while still serving from cache for most requests — same pattern
@@ -72,6 +73,8 @@ export default async function GameChartPage({
         />
 
         <ChartAbout gameName={gameName} resultTime={findGameResultTime(gameCode)} />
+
+        <RelatedCharts games={getRelatedGames(gameCode)} />
 
         {/* Back link */}
         <div className="text-center mt-8">

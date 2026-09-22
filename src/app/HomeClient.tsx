@@ -675,6 +675,8 @@ function GameCardSection({
                     <div className="text-[10px] text-black leading-none mt-1">{game.time}</div>
                     <Link
                       href={`/chart/${slug}`}
+                      aria-label={`View ${game.name} Satta King chart and old records`}
+                      title={`${game.name} Chart`}
                       className="inline-block text-[10px] font-bold text-blue-600 hover:text-blue-800 leading-none mt-0.5"
                     >
                       Chart →
