@@ -7,6 +7,8 @@ import ResultTimeBadge from "./ResultTimeBadge";
 import ChartAbout from "./ChartAbout";
 import RelatedCharts from "./RelatedCharts";
 import { findGameResultTime, getRelatedGames } from "@/lib/chart-meta";
+import { getTopGamesFromMongo } from "@/lib/top-games-mongodb";
+import TopResultsBlock from "@/components/TopResultsBlock";
 
 // Revalidate periodically so today's result shows up without a full
 // rebuild, while still serving from cache for most requests — same pattern
@@ -28,19 +30,26 @@ export default async function GameChartPage({
   // Fetch the default 6-month window server-side so the initial HTML a
   // crawler (or any non-JS client) sees already contains the real result
   // table, not just a loading skeleton.
-  const initialColumns = await Promise.all(
-    months.map(async (date) => {
-      try {
-        const data = await fetchGameChartMonth(gameCode, MONTH_NAMES[date.getMonth()], String(date.getFullYear()));
-        return buildMonthColumn(date, data?.results);
-      } catch {
-        return buildMonthColumn(date, undefined);
-      }
-    })
-  );
+  const [initialColumns, topGames] = await Promise.all([
+    Promise.all(
+      months.map(async (date) => {
+        try {
+          const data = await fetchGameChartMonth(gameCode, MONTH_NAMES[date.getMonth()], String(date.getFullYear()));
+          return buildMonthColumn(date, data?.results);
+        } catch {
+          return buildMonthColumn(date, undefined);
+        }
+      })
+    ),
+    getTopGamesFromMongo().catch(() => []),
+  ]);
 
   return (
     <div className="bg-white min-h-screen">
+      <div className="max-w-5xl mx-auto px-3 md:px-4 pt-4 md:pt-6">
+        <TopResultsBlock topGames={topGames} />
+      </div>
+
       <div className="max-w-5xl mx-auto px-3 md:px-4 py-6 md:py-10">
         <nav aria-label="Breadcrumb" className="mb-5 text-sm text-gray-500">
           <ol className="flex flex-wrap items-center gap-2">
