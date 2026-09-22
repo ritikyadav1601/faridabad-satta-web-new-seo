@@ -805,53 +805,44 @@ function WhatsAppContactSection({
 
   return (
     <section className="sa opacity-0 translate-y-8">
-      <div className="overflow-hidden rounded-3xl border-4 border-dashed border-red-500 bg-gradient-to-b from-yellow-300 via-yellow-100 to-white shadow-xl">
-        <div className="px-4 pb-3 pt-6 text-center">
-          <p className="text-lg font-black text-gray-900 md:text-xl">⭐ Direct Company No.1 Khaiwal ⭐</p>
-          <h2 className="mt-3 text-2xl font-black text-[#1a1a2e] md:text-4xl">{name}</h2>
+      <div className="overflow-hidden rounded-2xl border-2 border-dashed border-red-500 bg-gradient-to-b from-yellow-300 via-yellow-100 to-white shadow-xl">
+        <div className="px-3 pb-1.5 pt-3 text-center">
+          <h2 className="text-lg font-black text-[#1a1a2e] md:text-2xl">{name}</h2>
         </div>
 
-        <div className="mx-auto max-w-xl px-4 pb-5">
-          <div className="rounded-2xl border-2 border-yellow-500 bg-white/60 p-4 backdrop-blur">
+        <div className="mx-auto max-w-xl px-3 pb-2">
+          <div className="grid grid-cols-2 gap-x-3 gap-y-0.5 rounded-xl border-2 border-yellow-500 bg-white/60 p-2 backdrop-blur">
             {games.map(([hiName, enName, time]) => (
-              <div key={enName} className="flex items-center justify-between border-b border-dashed border-gray-400 py-2 last:border-0">
-                <div className="flex items-center gap-2 font-bold text-gray-800">
-                  <span className="text-xl">⏰</span>
-                  <span>{t(hiName, enName, lang)}</span>
+              <div key={enName} className="flex items-center justify-between gap-1 border-b border-dashed border-gray-300 py-1 last:border-0">
+                <div className="flex min-w-0 items-center gap-1 font-bold text-gray-800">
+                  <span className="text-xs">⏰</span>
+                  <span className="truncate text-[11px]">{t(hiName, enName, lang)}</span>
                 </div>
-                <span className="font-black text-[#1a1a2e]">{time}</span>
+                <span className="shrink-0 text-[11px] font-black text-[#1a1a2e]">{time}</span>
               </div>
             ))}
           </div>
         </div>
 
-        <div className="mx-auto grid max-w-md grid-cols-2 gap-3 px-4">
-          <div className="rounded-2xl border-2 border-yellow-500 bg-white p-3 text-center">
-            <p className="text-xs font-bold uppercase text-gray-500">Jodi Rate</p>
-            <p className="text-2xl font-black text-blue-700">10-960</p>
+        <div className="mx-auto grid max-w-md grid-cols-2 gap-2 px-3">
+          <div className="rounded-xl border-2 border-yellow-500 bg-white p-1.5 text-center">
+            <p className="text-[10px] font-bold uppercase text-gray-500">Jodi Rate</p>
+            <p className="text-lg font-black text-blue-700">10-960</p>
           </div>
-          <div className="rounded-2xl border-2 border-yellow-500 bg-white p-3 text-center">
-            <p className="text-xs font-bold uppercase text-gray-500">Haruf Rate</p>
-            <p className="text-2xl font-black text-blue-700">100-960</p>
+          <div className="rounded-xl border-2 border-yellow-500 bg-white p-1.5 text-center">
+            <p className="text-[10px] font-bold uppercase text-gray-500">Haruf Rate</p>
+            <p className="text-lg font-black text-blue-700">100-960</p>
           </div>
         </div>
 
-        <div className="px-4 py-5 text-center">
-          <p className="text-sm font-bold text-gray-700">PAYTM • PHONEPE • GOOGLE PAY • BANK TRANSFER</p>
-          <p className="mt-2 text-sm font-semibold text-red-600">PhonePe, GooglePay & Paytm Scanner Available</p>
-          <a href={`tel:+${phone}`} className="mt-4 inline-block border-b-4 border-blue-700 text-3xl font-black text-blue-700 md:text-4xl">+{phone}</a>
-          <p className="mt-5 text-xl font-black text-[#1a1a2e] md:text-2xl">😊😊 {name} 😊😊</p>
-          <p className="mt-2 text-sm font-bold text-gray-700 md:text-base">Game play karne ke liye niche link par click kare</p>
-        </div>
-
-        <div className="flex justify-center px-4 pb-8">
+        <div className="flex justify-center px-3 pb-3 pt-2">
           <a
-            href={`https://wa.me/${phone.replace(/\D/g, "")}?text=${encodeURIComponent("FARIDABAD SATTA")}`}
+            href={`https://wa.me/${phone.replace(/\D/g, "")}`}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 rounded-full bg-green-500 px-6 py-2.5 text-sm font-bold text-white shadow-md transition-all hover:scale-105 hover:bg-green-600 md:text-base"
+            className="inline-flex items-center gap-2 rounded-full bg-green-500 px-5 py-1.5 text-xs font-bold text-white shadow-md transition-all hover:scale-105 hover:bg-green-600 md:text-sm"
           >
-            <FaWhatsapp className="text-xl" />
+            <FaWhatsapp className="text-base" />
             <span>Chat on WhatsApp</span>
           </a>
         </div>
