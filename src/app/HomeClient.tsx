@@ -849,10 +849,10 @@ function WhatsAppContactSection({
             href={`https://wa.me/${phone.replace(/\D/g, "")}?text=${encodeURIComponent("FARIDABAD SATTA")}`}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center gap-4 rounded-full bg-green-500 px-8 py-4 text-lg font-black text-white shadow-lg transition-all hover:scale-105 hover:bg-green-600"
+            className="inline-flex items-center gap-2 rounded-full bg-green-500 px-6 py-2.5 text-sm font-bold text-white shadow-md transition-all hover:scale-105 hover:bg-green-600 md:text-base"
           >
-            <FaWhatsapp className="text-4xl" />
-            <span>WhatsApp<br /><small className="text-sm opacity-90">Click To Chat</small></span>
+            <FaWhatsapp className="text-xl" />
+            <span>Chat on WhatsApp</span>
           </a>
         </div>
       </div>
