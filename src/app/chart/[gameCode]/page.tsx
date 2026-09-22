@@ -9,6 +9,7 @@ import RelatedCharts from "./RelatedCharts";
 import { findGameResultTime, getRelatedGames } from "@/lib/chart-meta";
 import { getTopGamesFromMongo } from "@/lib/top-games-mongodb";
 import TopResultsBlock from "@/components/TopResultsBlock";
+import CurrentGameResult from "./CurrentGameResult";
 
 // Revalidate periodically so today's result shows up without a full
 // rebuild, while still serving from cache for most requests — same pattern
@@ -47,6 +48,7 @@ export default async function GameChartPage({
   return (
     <div className="bg-white min-h-screen">
       <div className="max-w-5xl mx-auto px-3 md:px-4 pt-4 md:pt-6">
+        <CurrentGameResult gameCode={gameCode} gameName={gameName} topGames={topGames} />
         <TopResultsBlock topGames={topGames} />
       </div>
 
