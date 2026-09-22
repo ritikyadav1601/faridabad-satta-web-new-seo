@@ -785,8 +785,6 @@ function WhatsAppContactSection({
   lang: "hi" | "en";
   khaiwal: { name: string; whatsapp: string } | null;
 }) {
-  const savedPhone = (khaiwal?.whatsapp || "7015129958").replace(/\D/g, "");
-  const phone = savedPhone.length === 10 ? `91${savedPhone}` : savedPhone;
   const name = khaiwal?.name || "Har Har Mahadev";
   const games = [
     ["शिव गंगा", "Shiv Ganga", "12:15 PM"],
@@ -807,7 +805,6 @@ function WhatsAppContactSection({
     <section className="sa opacity-0 translate-y-8">
       <div className="overflow-hidden rounded-3xl border-4 border-dashed border-red-500 bg-gradient-to-b from-yellow-300 via-yellow-100 to-white shadow-xl">
         <div className="px-4 pb-3 pt-6 text-center">
-          <p className="text-lg font-black text-gray-900 md:text-xl">⭐ Direct Company No.1 Khaiwal ⭐</p>
           <h2 className="mt-3 text-2xl font-black text-[#1a1a2e] md:text-4xl">{name}</h2>
         </div>
 
@@ -836,25 +833,6 @@ function WhatsAppContactSection({
           </div>
         </div>
 
-        <div className="px-4 py-5 text-center">
-          <p className="text-sm font-bold text-gray-700">PAYTM • PHONEPE • GOOGLE PAY • BANK TRANSFER</p>
-          <p className="mt-2 text-sm font-semibold text-red-600">PhonePe, GooglePay & Paytm Scanner Available</p>
-          <a href={`tel:+${phone}`} className="mt-4 inline-block border-b-4 border-blue-700 text-3xl font-black text-blue-700 md:text-4xl">+{phone}</a>
-          <p className="mt-5 text-xl font-black text-[#1a1a2e] md:text-2xl">😊😊 {name} 😊😊</p>
-          <p className="mt-2 text-sm font-bold text-gray-700 md:text-base">Game play karne ke liye niche link par click kare</p>
-        </div>
-
-        <div className="flex justify-center px-4 pb-8">
-          <a
-            href={`https://wa.me/${phone.replace(/\D/g, "")}?text=${encodeURIComponent("FARIDABAD SATTA")}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center gap-4 rounded-full bg-green-500 px-8 py-4 text-lg font-black text-white shadow-lg transition-all hover:scale-105 hover:bg-green-600"
-          >
-            <FaWhatsapp className="text-4xl" />
-            <span>WhatsApp<br /><small className="text-sm opacity-90">Click To Chat</small></span>
-          </a>
-        </div>
       </div>
     </section>
   );
