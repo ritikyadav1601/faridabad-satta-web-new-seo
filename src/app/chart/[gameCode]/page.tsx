@@ -65,6 +65,16 @@ export default async function GameChartPage({
   return (
     <div className="bg-white min-h-screen">
       <div className="max-w-5xl mx-auto px-3 md:px-4 pt-4 md:pt-6">
+        <nav aria-label="Breadcrumb" className="mb-4 text-sm text-gray-500">
+          <ol className="flex flex-wrap items-center gap-2">
+            <li><Link href="/" className="hover:text-blue-700">Home</Link></li>
+            <li aria-hidden="true">/</li>
+            <li><Link href="/charts" className="hover:text-blue-700">Charts</Link></li>
+            <li aria-hidden="true">/</li>
+            <li aria-current="page" className="font-semibold text-gray-800">{gameName}</li>
+          </ol>
+        </nav>
+
         <CurrentGameResult
           gameCode={gameCode}
           gameName={gameName}
@@ -76,16 +86,6 @@ export default async function GameChartPage({
       </div>
 
       <div className="max-w-5xl mx-auto px-3 md:px-4 py-6 md:py-10">
-        <nav aria-label="Breadcrumb" className="mb-5 text-sm text-gray-500">
-          <ol className="flex flex-wrap items-center gap-2">
-            <li><Link href="/" className="hover:text-blue-700">Home</Link></li>
-            <li aria-hidden="true">/</li>
-            <li><Link href="/charts" className="hover:text-blue-700">Charts</Link></li>
-            <li aria-hidden="true">/</li>
-            <li aria-current="page" className="font-semibold text-gray-800">{gameName}</li>
-          </ol>
-        </nav>
-
         {/* Header */}
         <div className="text-center mb-6">
           <div className="inline-flex items-center gap-2 bg-gray-100 rounded-full px-4 py-1.5 mb-3">

@@ -52,6 +52,16 @@ export default async function YearChartPage({
   return (
     <div className="bg-white min-h-screen">
       <div className="max-w-5xl mx-auto px-3 md:px-4 pt-4 md:pt-6">
+        <nav aria-label="Breadcrumb" className="mb-4 text-xs text-slate-500">
+          <ol className="flex flex-wrap items-center gap-2">
+            <li><Link href="/" className="hover:text-indigo-700">Home</Link></li>
+            <li aria-hidden="true">/</li>
+            <li><Link href="/charts" className="hover:text-indigo-700">Charts</Link></li>
+            <li aria-hidden="true">/</li>
+            <li aria-current="page" className="font-semibold text-slate-800">{gameName} {year}</li>
+          </ol>
+        </nav>
+
         <CurrentGameResult
           gameCode={gameCode}
           gameName={gameName}
@@ -63,15 +73,6 @@ export default async function YearChartPage({
       </div>
 
       <main className="mx-auto max-w-7xl px-2.5 py-5 md:px-5 md:py-7">
-        <nav aria-label="Breadcrumb" className="mb-4 text-xs text-slate-500">
-          <ol className="flex flex-wrap items-center gap-2">
-            <li><Link href="/" className="hover:text-indigo-700">Home</Link></li>
-            <li aria-hidden="true">/</li>
-            <li><Link href="/charts" className="hover:text-indigo-700">Charts</Link></li>
-            <li aria-hidden="true">/</li>
-            <li aria-current="page" className="font-semibold text-slate-800">{gameName} {year}</li>
-          </ol>
-        </nav>
         <header className="mb-4 text-center">
           <span className="inline-flex items-center gap-1.5 rounded-full border border-indigo-100 bg-indigo-50 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-indigo-700">
             <FiBarChart2 /> Full year chart
