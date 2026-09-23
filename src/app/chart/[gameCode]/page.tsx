@@ -8,6 +8,8 @@ import ChartAbout from "./ChartAbout";
 import RelatedCharts from "./RelatedCharts";
 import { findGameResultTime, getRelatedGames } from "@/lib/chart-meta";
 import { getTopGamesFromMongo } from "@/lib/top-games-mongodb";
+import { getHomepageFromMongo } from "@/lib/extra-games-mongodb";
+import { getISTDateString } from "@/lib/utils";
 import TopResultsBlock from "@/components/TopResultsBlock";
 import CurrentGameResult from "./CurrentGameResult";
 
@@ -31,7 +33,7 @@ export default async function GameChartPage({
   // Fetch the default 6-month window server-side so the initial HTML a
   // crawler (or any non-JS client) sees already contains the real result
   // table, not just a loading skeleton.
-  const [initialColumns, topGames] = await Promise.all([
+  const [initialColumns, topGames, homepage] = await Promise.all([
     Promise.all(
       months.map(async (date) => {
         try {
@@ -43,12 +45,33 @@ export default async function GameChartPage({
       })
     ),
     getTopGamesFromMongo().catch(() => []),
+    getHomepageFromMongo().catch(() => null),
   ]);
+  const extraGames = homepage?.live || [];
+
+  // Last-resort fallback for the handful of chart-only slugs that aren't in
+  // either live-results feed above: read today's/yesterday's cell straight
+  // out of this page's own month-by-month chart data (IST calendar days).
+  const findChartResult = (dateString: string) => {
+    const [y, m, d] = dateString.split("-").map(Number);
+    const col = initialColumns.find((c) => c.year === y && c.monthIndex === m - 1);
+    return col?.rowsByDay[d];
+  };
+  const chartFallback = {
+    today: findChartResult(getISTDateString()),
+    yesterday: findChartResult(getISTDateString(-1)),
+  };
 
   return (
     <div className="bg-white min-h-screen">
       <div className="max-w-5xl mx-auto px-3 md:px-4 pt-4 md:pt-6">
-        <CurrentGameResult gameCode={gameCode} gameName={gameName} topGames={topGames} />
+        <CurrentGameResult
+          gameCode={gameCode}
+          gameName={gameName}
+          topGames={topGames}
+          extraGames={extraGames}
+          chartFallback={chartFallback}
+        />
         <TopResultsBlock topGames={topGames} />
       </div>
 
