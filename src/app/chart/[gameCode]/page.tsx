@@ -11,6 +11,7 @@ import { getTopGamesFromMongo } from "@/lib/top-games-mongodb";
 import { getHomepageFromMongo } from "@/lib/extra-games-mongodb";
 import { getISTDateString } from "@/lib/utils";
 import TopResultsBlock from "@/components/TopResultsBlock";
+import KhaiwalChartSection from "@/components/KhaiwalChartSection";
 import CurrentGameResult from "./CurrentGameResult";
 
 // Revalidate periodically so today's result shows up without a full
@@ -97,6 +98,8 @@ export default async function GameChartPage({
           </h1>
           <ResultTimeBadge gameCode={gameCode} />
         </div>
+
+        <KhaiwalChartSection />
 
         <ChartTableClient
           gameCode={gameCode}

@@ -280,7 +280,10 @@ export default function HomeClient({ initialData, seoContent }: { initialData: H
               lang={lang}
             />
 
-            {/* ─── 2ND SECTION: Monthly Chart ─── */}
+            {/* ─── 2ND SECTION: Khaiwal Chart ─── */}
+            <WhatsAppContactSection lang={lang} khaiwal={khaiwal} />
+
+            {/* ─── 3RD SECTION: Monthly Chart ─── */}
             <MonthlyChartSection
               initialRows={monthlyChart}
               initialMonth={monthlyChartMeta.month}
@@ -288,7 +291,6 @@ export default function HomeClient({ initialData, seoContent }: { initialData: H
               lang={lang}
             />
 
-            <WhatsAppContactSection lang={lang} khaiwal={khaiwal} />
             <ChannelFollowSection lang={lang} />
 
             {/* ─── 4TH SECTION: Former top games and other games ─── */}
@@ -843,9 +845,9 @@ function WhatsAppContactSection({
             href={`https://wa.me/${phone.replace(/\D/g, "")}`}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 rounded-full bg-green-500 px-6 py-2 text-sm font-bold text-white shadow-md transition-all hover:scale-105 hover:bg-green-600"
+            className="inline-flex items-center gap-2.5 rounded-full bg-green-500 px-7 py-3 text-base font-bold text-white shadow-md transition-all hover:scale-105 hover:bg-green-600"
           >
-            <FaWhatsapp className="text-lg" />
+            <FaWhatsapp className="text-xl" />
             <span>Chat on WhatsApp</span>
           </a>
         </div>

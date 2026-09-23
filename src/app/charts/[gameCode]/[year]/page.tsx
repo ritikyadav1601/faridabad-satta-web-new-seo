@@ -5,6 +5,7 @@ import { getHomepageFromMongo } from "@/lib/extra-games-mongodb";
 import { getISTDateString } from "@/lib/utils";
 import { findGameResultTime, getRelatedGames } from "@/lib/chart-meta";
 import TopResultsBlock from "@/components/TopResultsBlock";
+import KhaiwalChartSection from "@/components/KhaiwalChartSection";
 import CurrentGameResult from "@/app/chart/[gameCode]/CurrentGameResult";
 import ResultTimeBadge from "@/app/chart/[gameCode]/ResultTimeBadge";
 import ChartAbout from "@/app/chart/[gameCode]/ChartAbout";
@@ -81,6 +82,8 @@ export default async function YearChartPage({
           <p className="text-xs text-slate-500">Complete January–December result record</p>
           <ResultTimeBadge gameCode={gameCode} />
         </header>
+
+        <KhaiwalChartSection />
 
         <div className="overflow-x-auto rounded-2xl border border-slate-200 bg-white shadow-sm">
           <table className="min-w-[900px] w-full border-collapse text-center">
