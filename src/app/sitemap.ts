@@ -2,7 +2,8 @@ import type { MetadataRoute } from "next";
 import { SITE_URL } from "@/lib/site";
 import { TOP_GAME_DEFS } from "@/lib/top-games";
 import { getTopGameAvailableYearsFromMongo } from "@/lib/top-games-mongodb";
-import { CHART_META } from "@/lib/chart-meta";
+import { CHART_META, POPULAR_GAME_SLUGS } from "@/lib/chart-meta";
+import { getExtraGameResultCounts } from "@/lib/extra-games-mongodb";
 import { getPublishedBlogSlugs } from "@/lib/blogs-mongodb";
 
 // Refresh the sitemap at most every hour.
@@ -41,8 +42,13 @@ const FIXED_GAME_NAMES = TOP_GAME_DEFS.map((game) => game.name);
 // the sitemap.
 const CURATED_GAME_SLUGS = new Set<string>([
   ...FIXED_GAME_NAMES.map(toSlug),
-  ...Object.keys(CHART_META),
+  ...Object.keys(CHART_META).filter((slug) => !POPULAR_GAME_SLUGS.has(slug)),
 ]);
+
+// Popular extra games (Meerut City etc.) are listed only while they have a
+// real chart history in the extra-games results collection — at least this
+// many results in the last ~6 months.
+const MIN_RESULTS_FOR_SITEMAP = 20;
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const now = new Date();
@@ -57,7 +63,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   ];
 
   // ─── Chart pages (one per curated game) ───
-  const chartRoutes: MetadataRoute.Sitemap = Array.from(CURATED_GAME_SLUGS).map((slug) => ({
+  const resultCounts = await getExtraGameResultCounts();
+  const popularWithData = Array.from(POPULAR_GAME_SLUGS).filter(
+    (slug) => (resultCounts[slug] || 0) >= MIN_RESULTS_FOR_SITEMAP
+  );
+  const chartRoutes: MetadataRoute.Sitemap = Array.from(
+    new Set([...CURATED_GAME_SLUGS, ...popularWithData])
+  ).map((slug) => ({
     url: `${SITE_URL}/chart/${slug}`,
     changeFrequency: "daily",
     priority: 0.8,

@@ -18,6 +18,12 @@ const MONTH_LABELS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "S
 // already used on the homepage (src/app/page.tsx).
 export const revalidate = 60;
 
+// Required for ISR on a dynamic route — without it every request is
+// rendered from scratch and `revalidate` is ignored (see chart/[gameCode]).
+export async function generateStaticParams() {
+  return [];
+}
+
 // Brought in line with /chart/[gameCode]: same top result banner + live
 // Top Games table, same result-time badge, same FAQ/About content and
 // Related Charts links, so a visitor lands on the same page "shape"
@@ -63,6 +69,15 @@ export default async function YearChartPage({
           </ol>
         </nav>
 
+        <header className="mb-4 text-center">
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-indigo-100 bg-indigo-50 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-indigo-700">
+            <FiBarChart2 /> Full year chart
+          </span>
+          <h1 className="mt-2 text-xl font-black text-slate-950 md:text-3xl">{gameName} Satta King Chart {year}</h1>
+          <p className="text-xs text-slate-500">Complete January–December result record</p>
+          <ResultTimeBadge gameCode={gameCode} />
+        </header>
+
         <CurrentGameResult
           gameCode={gameCode}
           gameName={gameName}
@@ -70,18 +85,9 @@ export default async function YearChartPage({
           extraGames={extraGames}
           chartFallback={chartFallback}
         />
-        <TopResultsBlock topGames={topGames} />
       </div>
 
-      <main className="mx-auto max-w-7xl px-2.5 py-5 md:px-5 md:py-7">
-        <header className="mb-4 text-center">
-          <span className="inline-flex items-center gap-1.5 rounded-full border border-indigo-100 bg-indigo-50 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-indigo-700">
-            <FiBarChart2 /> Full year chart
-          </span>
-          <h1 className="mt-2 text-xl font-black text-slate-950 md:text-3xl">{gameName} {year}</h1>
-          <p className="text-xs text-slate-500">Complete January–December result record</p>
-          <ResultTimeBadge gameCode={gameCode} />
-        </header>
+      <main className="mx-auto max-w-7xl px-2.5 py-4 md:px-5 md:py-6">
 
         <KhaiwalChartSection />
 
@@ -111,6 +117,11 @@ export default async function YearChartPage({
               ))}
             </tbody>
           </table>
+        </div>
+
+        {/* Shared live results block, moved below this game's chart. */}
+        <div className="mt-8">
+          <TopResultsBlock topGames={topGames} />
         </div>
 
         <ChartAbout gameName={gameName} resultTime={findGameResultTime(gameCode)} />

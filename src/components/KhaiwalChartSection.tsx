@@ -55,6 +55,7 @@ export default async function KhaiwalChartSection() {
         <div className="flex justify-center px-4 pb-4 pt-3">
           <a
             href={getWhatsAppLink(phone, "Faridabad Satta")}
+            data-wa-location="khaiwal_section"
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center gap-2.5 rounded-full bg-green-500 px-7 py-3 text-base font-bold text-white shadow-md transition-all hover:scale-105 hover:bg-green-600"

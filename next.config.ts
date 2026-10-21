@@ -4,6 +4,12 @@ const nextConfig: NextConfig = {
   poweredByHeader: false,
   async redirects() {
     return [
+      // /chart/fatehabad never had results; Fatehabad City is the live market.
+      {
+        source: "/chart/fatehabad",
+        destination: "/chart/fatehabad-city",
+        permanent: true,
+      },
       {
         source: "/:path*",
         has: [{ type: "host", value: "faridabadsatta.com" }],

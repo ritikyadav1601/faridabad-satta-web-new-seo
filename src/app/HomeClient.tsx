@@ -6,7 +6,7 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { format } from "date-fns";
 import { FiClock, FiTrendingUp, FiZap, FiBarChart2, FiCalendar, FiChevronDown } from "react-icons/fi";
-import { FaTelegramPlane, FaWhatsapp } from "react-icons/fa";
+import { FaWhatsapp } from "react-icons/fa";
 import { useLanguage, t } from "@/context/LanguageContext";
 import type { HomeData } from "@/lib/home-data";
 import { TOP_GAME_DEFS } from "@/lib/top-games";
@@ -106,6 +106,8 @@ export default function HomeClient({ initialData, seoContent }: { initialData: H
   const extraGames = initialData.extraGames.filter((game) => !isJunkGame(game.name));
   const loading = false;
   const khaiwal = initialData.khaiwal;
+  const heroWaDigits = (khaiwal?.whatsapp || "7015129958").replace(/\D/g, "");
+  const heroWaPhone = heroWaDigits.length === 10 ? `91${heroWaDigits}` : heroWaDigits;
 
   const containerRef = useScrollAnimation([loading]);
   const { lang } = useLanguage();
@@ -241,6 +243,26 @@ export default function HomeClient({ initialData, seoContent }: { initialData: H
             </div>
           )}
         </div>
+
+        <a
+          href={`https://wa.me/${heroWaPhone}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          data-wa-location="hero"
+          className="mx-auto mt-5 flex w-full max-w-md items-center gap-3 rounded-2xl bg-gradient-to-br from-[#29d869] via-[#20bc5a] to-[#128c3e] px-5 py-3.5 text-left text-white shadow-[0_10px_24px_rgba(18,140,62,0.35)] transition hover:-translate-y-0.5 hover:shadow-[0_14px_30px_rgba(18,140,62,0.45)] active:scale-95"
+        >
+          <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-white/20">
+            <FaWhatsapp className="h-8 w-8" />
+          </span>
+          <span className="flex-1">
+            <span className="block text-lg font-black leading-tight sm:text-xl">आज का गेम यहाँ लगाएं</span>
+            <span className="mt-1 flex items-center gap-1.5 text-sm font-bold text-white/90">
+              <span className="h-2 w-2 rounded-full bg-white animate-live-pulse" />
+              24*7 Online • तुरंत जवाब
+            </span>
+          </span>
+          <span className="text-2xl font-black">›</span>
+        </a>
       </div>
 
       {/* Disclaimer */}
@@ -291,7 +313,6 @@ export default function HomeClient({ initialData, seoContent }: { initialData: H
               lang={lang}
             />
 
-            <ChannelFollowSection lang={lang} />
 
             {/* ─── 4TH SECTION: Former top games and other games ─── */}
            <GameCardSection
@@ -385,6 +406,9 @@ export default function HomeClient({ initialData, seoContent }: { initialData: H
             {t("FaridabadSatta.com पर अपने गेम को फीचर करने के लिए संपर्क करें", "Contact us to feature your game on FaridabadSatta.com", lang)}
           </p>
         </div>
+
+        {/* Keyword section (Search Console queries, 2026-10-21) */}
+        <FaridabadKeywordSection />
 
         {/* SEO */}
         <SeoContent content={seoContent} />
@@ -856,40 +880,6 @@ function WhatsAppContactSection({
   );
 }
 
-function ChannelFollowSection({ lang }: { lang: "hi" | "en" }) {
-  return (
-    <section className="sa opacity-0 translate-y-8 rounded-2xl border border-emerald-200 bg-gradient-to-r from-emerald-50 to-sky-50 p-5 text-center shadow-sm md:p-6">
-      <p className="text-base font-black text-gray-900 md:text-lg">
-        {t(
-          "सबसे तेज रिजल्ट के लिए चैनल को फॉलो करें 🕉️",
-          "Follow our channels for the fastest results 🕉️",
-          lang
-        )}
-      </p>
-      <div className="mt-4 flex flex-col justify-center gap-3 sm:flex-row">
-        <a
-          href="https://whatsapp.com/channel/0029Vb7N6II8fewx7GpwN01p"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="inline-flex items-center justify-center gap-2 rounded-xl bg-green-600 px-5 py-3 font-bold text-white transition hover:bg-green-700"
-        >
-          <FaWhatsapp className="h-5 w-5" />
-          WhatsApp Channel
-        </a>
-        <a
-          href="https://t.me/faridabadsattafastresult"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="inline-flex items-center justify-center gap-2 rounded-xl bg-sky-500 px-5 py-3 font-bold text-white transition hover:bg-sky-600"
-        >
-          <FaTelegramPlane className="h-5 w-5" />
-          Telegram Channel
-        </a>
-      </div>
-    </section>
-  );
-}
-
 // ─── Monthly Chart Section ───
 
 const CHART_GAMES = [
@@ -1073,6 +1063,68 @@ function MonthlyChartSection({
 }
 
 // ─── SEO Content ───
+
+// Static, code-owned copy aimed at the non-brand queries that already reach
+// the homepage at positions ~30–50 in Search Console (Oct 2026):
+// faridabad satta chart / result / game / number / record / matka,
+// "faridabad me aaj kya aaya", Hindi "फरीदाबाद सट्टा किंग", plus internal
+// links to the chart pages those long-tail game queries should land on.
+const KEYWORD_GAME_LINKS: [slug: string, label: string][] = [
+  ["fatehabad-city", "Fatehabad Satta King"],
+  ["maa-bhagwati", "Maa Bhagwati Satta King"],
+  ["bikaner-super", "Bikaner Super Satta King"],
+  ["anarkali", "Anarkali Satta King"],
+  ["deep-sagar", "Deep Sagar Satta King"],
+  ["chand-tara", "Chand Tara Satta King"],
+  ["udaan-king", "Udaan Satta King"],
+  ["royal-challenge", "Royal Challenge Satta King"],
+  ["shiv-shakti", "Shiv Shakti Satta King"],
+  ["bhagya-lakshmi", "Bhagya Lakshmi Satta King"],
+  ["jaisalmer", "Jaisalmer Satta King"],
+  ["neelkanth", "Neelkanth Satta King"],
+];
+
+function FaridabadKeywordSection() {
+  const linkCls = "font-semibold text-blue-700 underline";
+  return (
+    <section className="rounded-2xl border border-gray-200 bg-white p-5 text-sm leading-relaxed text-gray-700 md:p-8">
+      <h2 className="text-2xl font-black tracking-tight text-gray-900 md:text-3xl">
+        Faridabad Satta Result, Chart &amp; Record
+      </h2>
+      <p className="my-3">
+        The <strong>Faridabad Satta King result today</strong> is published here as soon as it is declared,
+        usually around 06:10 PM. The live result card at the top shows today&apos;s{" "}
+        <strong>Faridabad satta number</strong> next to yesterday&apos;s, so you can see what came in
+        Faridabad today without opening another page.
+      </p>
+      <h3 className="mt-6 text-xl font-black text-gray-900">Faridabad Satta Chart 2026</h3>
+      <p className="my-3">
+        The full <Link href="/chart/faridabad" className={linkCls}>Faridabad Satta Chart</Link> lists every
+        day&apos;s Faridabad Satta King result month by month, with the old Faridabad satta record for
+        previous years in the <Link href="/charts" className={linkCls}>yearly chart archive</Link>. Related
+        charts: <Link href="/chart/ghaziabad" className={linkCls}>Ghaziabad</Link>,{" "}
+        <Link href="/chart/gali" className={linkCls}>Gali</Link> and{" "}
+        <Link href="/chart/deshawer" className={linkCls}>Disawar</Link>.
+      </p>
+      <h3 className="mt-6 text-xl font-black text-gray-900">फरीदाबाद सट्टा किंग रिजल्ट</h3>
+      <p className="my-3">
+        फरीदाबाद सट्टा किंग का आज का रिजल्ट, फरीदाबाद सट्टा नंबर और पुराना रिकॉर्ड इसी पेज पर देखें।
+        सट्टा किंग फरीदाबाद का पूरा चार्ट महीने के हिसाब से{" "}
+        <Link href="/chart/faridabad" className={linkCls}>फरीदाबाद सट्टा चार्ट</Link> पेज पर उपलब्ध है।
+      </p>
+      <h3 className="mt-6 text-xl font-black text-gray-900">Other Satta King Result Charts</h3>
+      <ul className="my-3 grid list-none grid-cols-1 gap-x-6 gap-y-1 sm:grid-cols-2">
+        {KEYWORD_GAME_LINKS.map(([slug, label]) => (
+          <li key={slug}>
+            <Link href={`/chart/${slug}`} className={linkCls}>
+              {label} Chart
+            </Link>
+          </li>
+        ))}
+      </ul>
+    </section>
+  );
+}
 
 function SeoContent({ content }: { content: string }) {
   return (

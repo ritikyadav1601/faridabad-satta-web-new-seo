@@ -7,9 +7,6 @@ export default async function ContactPage() {
   const khaiwal = await getKhaiwalSettings();
   const whatsappNumber = (khaiwal?.whatsapp || "7015129958").replace(/\D/g, "");
   const internationalNumber = whatsappNumber.startsWith("91") ? whatsappNumber : `91${whatsappNumber}`;
-  const whatsappLink = `https://wa.me/${internationalNumber}?text=${encodeURIComponent(
-    "Hello, I need assistance with FaridabadSatta.com"
-  )}`;
 
   return (
     <main className="min-h-screen bg-[var(--surface-page)]">
@@ -48,29 +45,16 @@ export default async function ContactPage() {
           <div className="p-6 md:p-8">
             <h2 className="text-xl font-black text-gray-900 md:text-2xl">Contact Information</h2>
             <p className="mt-4 text-sm font-bold uppercase tracking-wide text-gray-500">WhatsApp Support</p>
-            <a
-              href={whatsappLink}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="mt-1 inline-block text-2xl font-black text-green-700 hover:underline md:text-3xl"
-            >
+            <p className="mt-1 flex items-center gap-2 text-2xl font-black text-green-700 md:text-3xl">
+              <FaWhatsapp size={26} />
               +{internationalNumber}
-            </a>
+            </p>
             <p className="mt-4 leading-7 text-gray-600">
-              For the fastest assistance, please contact us through WhatsApp. You can also visit our{" "}
+              For the fastest assistance, please message us on the WhatsApp number above. You can also visit our{" "}
               <Link href="/complaint" className="font-bold text-indigo-600 hover:underline">Complaint page</Link>
               {" if you need to report a website-related issue."}
             </p>
           </div>
-          <a
-            href={whatsappLink}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center justify-center gap-3 bg-green-600 px-6 py-4 text-lg font-black text-white transition hover:bg-green-700"
-          >
-            <FaWhatsapp size={26} />
-            Contact Support on WhatsApp
-          </a>
         </section>
 
         <section className="mt-5 rounded-2xl border border-red-200 bg-red-50 p-5 text-red-700 md:p-7">

@@ -22,9 +22,9 @@ const SETTINGS_ID = "homepage-seo";
 // Kept close to the original hardcoded block, just flattened into plain
 // headings/paragraphs since the admin editor is a single rich-text box.
 export const DEFAULT_HOMEPAGE_SEO: HomepageSeoSettings = {
-  metaTitle: "Satta King Today {{date}} | Faridabad",
+  metaTitle: "Faridabad Satta King Result {{date}} – Chart & Record",
   metaDescription:
-    "Check today's Faridabad Satta King result plus Gali, Ghaziabad, Delhi Bazar and Desawar updates, daily charts and old records.",
+    "Faridabad Satta King result today, Faridabad satta number, Faridabad satta chart 2026 and old record. फरीदाबाद सट्टा किंग रिजल्ट, plus Gali, Ghaziabad and Disawar.",
   content: `<h2>Satta King Result Today {{date}} | Faridabad Satta Live Updates</h2>
 <p>Welcome to <strong>FaridabadSatta.com</strong>, your trusted source for daily satta king and faridabad satta information. Our platform provides timely result updates, organized archives, and easy access to regional charts. Whether you are checking today's updates or exploring previous records, everything is arranged in a simple, user-friendly format that works smoothly across all devices.</p>
 <h3>About FaridabadSatta.com</h3>

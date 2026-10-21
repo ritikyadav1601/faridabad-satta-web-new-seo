@@ -159,3 +159,132 @@ export async function deleteCustomGameField(date: string, field: string) {
   await (await collection(process.env.EXTRA_GAMES_CUSTOM_COLLECTION || "custom_games"))
     .updateOne({ _id: date }, { $unset: { [field]: "" }, $set: { updatedAt: Date.now() } });
 }
+
+// ─── Extra-game chart history from our own `gameresults` collection ───
+//
+// Added 2026-10-19. Chart pages for the extra (non-top-12) games used to get
+// their month data only from the scraped_cache doc or, failing that, by
+// scraping satta-king-fast.com / satta-king-24.com live. For games like
+// Meerut City both scrapes found nothing and each waited out a 15s timeout,
+// so the page took ~16s and still showed "No chart data available". The
+// homepage already reads today's/yesterday's numbers for these same games
+// from `gameresults`; this reads a whole month from there in one query.
+
+const MONTH_NAMES_LC = [
+  "january", "february", "march", "april", "may", "june",
+  "july", "august", "september", "october", "november", "december",
+];
+
+let extraGamesListCache: { data: Document[]; expiresAt: number } | null = null;
+
+function slugOfName(name: string) {
+  return name.toLowerCase().trim().replace(/\s+/g, "-");
+}
+
+async function getExtraGamesList(): Promise<Document[]> {
+  if (extraGamesListCache && extraGamesListCache.expiresAt > Date.now()) return extraGamesListCache.data;
+  const docs = await (await collection(process.env.EXTRA_GAMES_MONGO_COLLECTION || "games"))
+    .find({} as never, { projection: { name: 1, gameName: 1, resultTime: 1, time: 1 } })
+    .toArray();
+  extraGamesListCache = { data: docs, expiresAt: Date.now() + 10 * 60 * 1000 };
+  return docs;
+}
+
+function resultDateKey(raw: unknown): string {
+  if (raw instanceof Date) return getISTDateStringFor(raw);
+  return String(raw || "").slice(0, 10);
+}
+
+function getISTDateStringFor(date: Date): string {
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Asia/Kolkata", year: "numeric", month: "2-digit", day: "2-digit",
+  }).format(date);
+}
+
+export async function getExtraGameChartFromResults(
+  slug: string,
+  month?: string,
+  year?: string
+): Promise<GameChartData | null> {
+  try {
+    const now = new Date();
+    const monthIndex = month ? MONTH_NAMES_LC.indexOf(month.toLowerCase()) : now.getMonth();
+    const yearNumber = year ? Number(year) : now.getFullYear();
+    if (monthIndex < 0 || !Number.isInteger(yearNumber)) return null;
+
+    const games = await getExtraGamesList();
+    const game = games.find((g) => slugOfName(String(g.name || g.gameName || "")) === slug);
+    if (!game) return null;
+
+    const mm = String(monthIndex + 1).padStart(2, "0");
+    const startStr = `${yearNumber}-${mm}-01`;
+    const endStr = `${yearNumber}-${mm}-31`;
+    const startDate = new Date(`${startStr}T00:00:00+05:30`);
+    const endDate = new Date(new Date(startDate).setMonth(startDate.getMonth() + 1));
+
+    const rows = await (await collection(process.env.EXTRA_GAMES_RESULTS_COLLECTION || "gameresults"))
+      .find({
+        game: game._id,
+        $or: [
+          { resultDate: { $gte: startStr, $lte: endStr } },
+          { resultDate: { $gte: startDate, $lt: endDate } },
+        ],
+      } as never)
+      .toArray();
+    if (!rows.length) return null;
+
+    const name = String(game.name || game.gameName).trim().toUpperCase();
+    const monthLabel = MONTH_NAMES_LC[monthIndex].charAt(0).toUpperCase() + MONTH_NAMES_LC[monthIndex].slice(1);
+    const results = rows
+      .map((row) => {
+        const date = resultDateKey(row.resultDate);
+        const raw = value(row, ["result", "value", "number"], "XX");
+        return {
+          date,
+          day: new Intl.DateTimeFormat("en-US", { weekday: "short", timeZone: "UTC" }).format(new Date(`${date}T00:00:00.000Z`)),
+          result: /^\d{1,2}$/.test(raw) ? raw.padStart(2, "0") : raw,
+        };
+      })
+      .filter((r) => /^\d{4}-\d{2}-\d{2}$/.test(r.date))
+      .sort((a, b) => a.date.localeCompare(b.date));
+
+    return {
+      gameName: name,
+      chartTitle: `${name} - ${monthLabel} ${yearNumber}`,
+      month: monthLabel,
+      year: String(yearNumber),
+      columns: ["Date", "Day", name],
+      results,
+      scrapedAt: Date.now(),
+    };
+  } catch (error) {
+    console.error("[extra-games-mongodb] Failed to read game chart from results:", (error as Error).message);
+    return null;
+  }
+}
+
+// Number of real results per extra-game slug over the last ~6 months. Used by
+// the sitemap so only extra games with an actual chart history get listed.
+export async function getExtraGameResultCounts(days = 183): Promise<Record<string, number>> {
+  try {
+    const games = await getExtraGamesList();
+    const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
+    const sinceStr = getISTDateStringFor(since);
+    const counts = await (await collection(process.env.EXTRA_GAMES_RESULTS_COLLECTION || "gameresults"))
+      .aggregate<{ _id: unknown; n: number }>([
+        { $match: { $or: [{ resultDate: { $gte: sinceStr } }, { resultDate: { $gte: since } }] } },
+        { $group: { _id: "$game", n: { $sum: 1 } } },
+      ])
+      .toArray();
+    const byId = new Map(counts.map((c) => [String(c._id), c.n]));
+    const out: Record<string, number> = {};
+    for (const g of games) {
+      const name = String(g.name || g.gameName || "");
+      if (name) out[slugOfName(name)] = byId.get(String(g._id)) || 0;
+    }
+    return out;
+  } catch (error) {
+    console.error("[extra-games-mongodb] Failed to count game results:", (error as Error).message);
+    return {};
+  }
+}

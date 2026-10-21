@@ -3,7 +3,7 @@ import {
   scrapeSattaFastGameChart,
   scrapeSK24GameChart,
 } from "@/lib/scraper";
-import { getGameChartCacheFromMongo } from "@/lib/extra-games-mongodb";
+import { getExtraGameChartFromResults, getGameChartCacheFromMongo } from "@/lib/extra-games-mongodb";
 import type { GameChartData } from "@/lib/types";
 import { memGet, memSet } from "@/lib/api-helpers";
 import { getTopGameChartFromMongo, isMongoTopGameSlug } from "@/lib/top-games-mongodb";
@@ -80,19 +80,45 @@ export async function fetchGameChartMonth(
     return mongoCacheData;
   }
 
-  // Scrape fallback (for games not yet cached)
+  // Our own extra-games results history (same `gameresults` collection the
+  // homepage reads today's numbers from). One indexed query, no scraping.
+  const resultsData = await getExtraGameChartFromResults(slug, month, year);
+  if (resultsData && resultsData.results.length > 0) {
+    memSet(cacheKey, resultsData, isPastMonth(month, year) ? 6 * 60 * 60 : 300);
+    return resultsData;
+  }
+
+  // Scrape fallback (for games not in any of our databases). Remember misses
+  // for 30 minutes so a game neither source site carries doesn't re-run
+  // (and re-wait for) both scrapes on every render.
+  const missKey = `miss:${cacheKey}`;
+  if (memGet<boolean>(missKey)) return null;
   try {
-    let result = await scrapeGameChart(slug, month, year);
+    let result = await scrapeGameChart(slug, month, year).catch(() => null);
     if (!result) {
       result = await scrapeSK24GameChart(slug, month, year);
     }
-    if (!result) return null;
+    if (!result) {
+      memSet(missKey, true, 30 * 60);
+      return null;
+    }
 
     const chartData: GameChartData = { ...result, scrapedAt: Date.now() };
     memSet(cacheKey, chartData, 300);
     return chartData;
   } catch (error) {
     console.error("[chart-data] scrape fallback failed:", (error as Error).message);
+    memSet(missKey, true, 30 * 60);
     return null;
   }
+}
+
+function isPastMonth(month?: string, year?: string): boolean {
+  if (!month || !year) return false;
+  const names = ["january", "february", "march", "april", "may", "june", "july", "august", "september", "october", "november", "december"];
+  const m = names.indexOf(month.toLowerCase());
+  const y = Number(year);
+  if (m < 0 || !Number.isInteger(y)) return false;
+  const now = new Date();
+  return y < now.getFullYear() || (y === now.getFullYear() && m < now.getMonth());
 }

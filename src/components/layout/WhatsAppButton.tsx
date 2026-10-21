@@ -13,6 +13,7 @@ export async function WhatsAppButton() {
         rel="noopener noreferrer"
         className="group relative flex items-center gap-2.5 overflow-visible rounded-full border border-white/30 bg-gradient-to-br from-[#29d869] via-[#20bc5a] to-[#128c3e] py-2 pl-2 pr-4 text-white shadow-[0_12px_28px_rgba(18,140,62,0.42)] transition duration-200 hover:-translate-y-1 hover:scale-[1.035] hover:shadow-[0_16px_34px_rgba(18,140,62,0.52)] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-green-500/35 active:scale-95"
         aria-label="Chat on WhatsApp"
+        data-wa-location="floating_button"
       >
         <span className="absolute -inset-1 -z-10 rounded-full whatsapp-ring" aria-hidden="true" />
         <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white text-[#1ca952] shadow-[inset_0_-2px_4px_rgba(0,0,0,0.12)] md:h-11 md:w-11">

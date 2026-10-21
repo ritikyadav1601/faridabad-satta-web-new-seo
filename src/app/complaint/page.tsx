@@ -1,6 +1,6 @@
 "use client";
 
-import { FaTelegramPlane, FaWhatsapp } from "react-icons/fa";
+import { FaWhatsapp } from "react-icons/fa";
 import { useLanguage, t } from "@/context/LanguageContext";
 import { useEffect, useState } from "react";
 
@@ -35,19 +35,13 @@ export default function ComplaintPage() {
           )}
         </p>
 
-        <a
-          href={`https://wa.me/${whatsappNumber}`}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="mt-8 inline-flex items-center gap-3 rounded-xl bg-green-600 px-8 py-4 text-lg font-bold text-white transition hover:bg-green-700"
-        >
-          <FaWhatsapp className="h-7 w-7" />
-          WhatsApp Now
-        </a>
-
-        <p className="mt-5 text-2xl font-bold text-green-700">
-          +{whatsappNumber}
-        </p>
+        <div className="mt-8 inline-flex items-center gap-3 rounded-xl border-2 border-green-600 bg-green-50 px-8 py-4">
+          <FaWhatsapp className="h-7 w-7 text-green-600" />
+          <div className="text-left">
+            <p className="text-sm font-bold uppercase tracking-wide text-green-700">WhatsApp</p>
+            <p className="text-2xl font-black text-green-700">+{whatsappNumber}</p>
+          </div>
+        </div>
 
       </div>
     </main>

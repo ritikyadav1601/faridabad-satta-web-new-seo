@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { FiCalendar, FiChevronLeft } from "react-icons/fi";
 import { fetchGameChartMonth } from "@/lib/chart-data";
@@ -6,7 +7,7 @@ import ChartTableClient from "./ChartTableClient";
 import ResultTimeBadge from "./ResultTimeBadge";
 import ChartAbout from "./ChartAbout";
 import RelatedCharts from "./RelatedCharts";
-import { findGameResultTime, getRelatedGames } from "@/lib/chart-meta";
+import { findGameResultTime, getRelatedGames, isCuratedChartSlug } from "@/lib/chart-meta";
 import { getTopGamesFromMongo } from "@/lib/top-games-mongodb";
 import { getHomepageFromMongo } from "@/lib/extra-games-mongodb";
 import { getISTDateString } from "@/lib/utils";
@@ -18,6 +19,57 @@ import CurrentGameResult from "./CurrentGameResult";
 // rebuild, while still serving from cache for most requests — same pattern
 // already used on the homepage (src/app/page.tsx).
 export const revalidate = 60;
+
+// Without generateStaticParams, Next.js ignores `revalidate` on a dynamic
+// route and renders every request from scratch (live check 2026-10-19:
+// 2-5s per chart page, x-vercel-cache MISS, cache-control no-store, while
+// the cached homepage answered in ~40ms). Returning [] keeps build time the
+// same (nothing prerendered) but caches each chart page on first visit and
+// refreshes it every `revalidate` seconds (ISR) — much faster for visitors
+// and Googlebot, which matters for the ~95 "Discovered - currently not
+// indexed" pages waiting to be crawled.
+export async function generateStaticParams() {
+  return [];
+}
+
+// Charts with (almost) no real results in the 6-month window are thin pages
+// Google won't index anyway; keep them reachable but tell crawlers not to
+// index them so crawl budget goes to the charts that have real records.
+// Uses the same fetchGameChartMonth calls as the page (in-memory cached),
+// so this adds no extra upstream requests in practice.
+const MIN_REAL_RESULTS_FOR_INDEX = 20;
+
+async function countRealResults(gameCode: string): Promise<number> {
+  const now = new Date();
+  const months = getMonthsWindow(new Date(now.getFullYear(), now.getMonth()), MONTHS_IN_VIEW);
+  const counts = await Promise.all(
+    months.map(async (date) => {
+      try {
+        const data = await fetchGameChartMonth(gameCode, MONTH_NAMES[date.getMonth()], String(date.getFullYear()));
+        return (data?.results || []).filter((r) => /^\d{2}$/.test(String(r.result).trim())).length;
+      } catch {
+        return 0;
+      }
+    })
+  );
+  return counts.reduce((a, b) => a + b, 0);
+}
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ gameCode: string }>;
+}): Promise<Metadata> {
+  const { gameCode } = await params;
+  // Curated sitemap pages were verified to have full charts — never let a
+  // transient Mongo/scrape failure during an ISR refresh mark them noindex.
+  if (isCuratedChartSlug(gameCode)) return {};
+  const real = await countRealResults(gameCode);
+  if (real < MIN_REAL_RESULTS_FOR_INDEX) {
+    return { robots: { index: false, follow: true } };
+  }
+  return {};
+}
 
 export default async function GameChartPage({
   params,
@@ -76,6 +128,20 @@ export default async function GameChartPage({
           </ol>
         </nav>
 
+        {/* Header — this game's own H1 comes first (it used to sit ~1600px
+            down, below the homepage hero + 12-game table, so every chart
+            page opened with identical content). */}
+        <div className="text-center mb-4">
+          <div className="inline-flex items-center gap-2 bg-gray-100 rounded-full px-4 py-1.5 mb-3">
+            <FiCalendar size={14} className="text-gray-500" />
+            <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">Chart Record</span>
+          </div>
+          <h1 className="text-2xl md:text-3xl font-black text-gray-900">
+            {gameName} Satta King Result &amp; Chart
+          </h1>
+          <ResultTimeBadge gameCode={gameCode} />
+        </div>
+
         <CurrentGameResult
           gameCode={gameCode}
           gameName={gameName}
@@ -83,22 +149,9 @@ export default async function GameChartPage({
           extraGames={extraGames}
           chartFallback={chartFallback}
         />
-        <TopResultsBlock topGames={topGames} />
       </div>
 
-      <div className="max-w-5xl mx-auto px-3 md:px-4 py-6 md:py-10">
-        {/* Header */}
-        <div className="text-center mb-6">
-          <div className="inline-flex items-center gap-2 bg-gray-100 rounded-full px-4 py-1.5 mb-3">
-            <FiCalendar size={14} className="text-gray-500" />
-            <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">Chart Record</span>
-          </div>
-          <h1 className="text-2xl md:text-3xl font-black text-gray-900">
-            {gameName}
-          </h1>
-          <ResultTimeBadge gameCode={gameCode} />
-        </div>
-
+      <div className="max-w-5xl mx-auto px-3 md:px-4 py-4 md:py-6">
         <KhaiwalChartSection />
 
         <ChartTableClient
@@ -108,6 +161,11 @@ export default async function GameChartPage({
           initialAnchorYear={anchorDate.getFullYear()}
           initialAnchorMonth={anchorDate.getMonth()}
         />
+
+        {/* Shared live results block, moved below this game's chart. */}
+        <div className="mt-8">
+          <TopResultsBlock topGames={topGames} />
+        </div>
 
         <ChartAbout gameName={gameName} resultTime={findGameResultTime(gameCode)} />
 

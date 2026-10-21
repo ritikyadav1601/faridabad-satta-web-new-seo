@@ -2,7 +2,28 @@ import axios from "axios";
 import * as cheerio from "cheerio";
 
 const HEADERS = { "User-Agent": "Mozilla/5.0" };
-const TIMEOUT = 15_000;
+// Was 15s. These scrapes run inside page renders, and a chart page asks for
+// 6 months in parallel, so a slow/blocking source site held every extra-game
+// chart page for ~16s (live, 2026-10-19). Fail fast instead.
+const TIMEOUT = 8_000;
+
+// The satta-king-fast homepage and the satta-king-24 /chart page are the
+// same document for every game and month. Share one in-flight/recent fetch
+// (10 min) instead of downloading them once per month per game.
+const SHARED_PAGE_TTL_MS = 10 * 60 * 1000;
+const sharedPages = new Map<string, { promise: Promise<string>; expiresAt: number }>();
+
+function getSharedPage(url: string): Promise<string> {
+  const hit = sharedPages.get(url);
+  if (hit && hit.expiresAt > Date.now()) return hit.promise;
+  const promise = axios
+    .get(url, { headers: HEADERS, timeout: TIMEOUT })
+    .then((res) => String(res.data));
+  sharedPages.set(url, { promise, expiresAt: Date.now() + SHARED_PAGE_TTL_MS });
+  // Don't keep a failed fetch around for 10 minutes; retry after 1 minute.
+  promise.catch(() => sharedPages.set(url, { promise, expiresAt: Date.now() + 60 * 1000 }));
+  return promise;
+}
 const SATTA_FAST_URL = "https://satta-fast.com";
 
 const SATTA_FAST_GAMES: Record<string, { column: string; name: string }> = {
@@ -84,10 +105,7 @@ export async function scrapeSattaFastGameChart(
 // ─── Game Chart Scraper ───
 
 export async function scrapeGameChart(slug: string, month?: string, year?: string) {
-  const { data: homeHtml } = await axios.get("https://satta-king-fast.com/", {
-    headers: HEADERS,
-    timeout: TIMEOUT,
-  });
+  const homeHtml = await getSharedPage("https://satta-king-fast.com/");
 
   const $home = cheerio.load(homeHtml);
   // Handle alternate spellings
@@ -190,10 +208,7 @@ export async function scrapeGameChart(slug: string, month?: string, year?: strin
 // ─── SK24 Game Chart Scraper (fallback) ───
 
 export async function scrapeSK24GameChart(slug: string, month?: string, year?: string) {
-  const { data: html } = await axios.get("https://www.satta-king-24.com/chart", {
-    headers: HEADERS,
-    timeout: TIMEOUT,
-  });
+  const html = await getSharedPage("https://www.satta-king-24.com/chart");
 
   const $ = cheerio.load(html);
   const gameNameUpper = slug.replace(/-/g, " ").toUpperCase();

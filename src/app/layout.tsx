@@ -5,6 +5,11 @@ import { Footer } from "@/components/layout/Footer";
 import { WhatsAppButton } from "@/components/layout/WhatsAppButton";
 import { LanguageProvider } from "@/context/LanguageContext";
 import { SITE_NAME, SITE_URL } from "@/lib/site";
+import WhatsAppClickTracker from "@/components/WhatsAppClickTracker";
+
+// Google Analytics 4 measurement ID. Set NEXT_PUBLIC_GA_ID in Vercel to switch
+// properties without a code change.
+const GA_ID = process.env.NEXT_PUBLIC_GA_ID || "G-9TLW18J0N2";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
@@ -84,7 +89,7 @@ export default function RootLayout({
       <head>
         <script
           async
-          src="https://www.googletagmanager.com/gtag/js?id=G-W71W8KSGT4"
+          src={`https://www.googletagmanager.com/gtag/js?id=${GA_ID}`}
         />
         <script
           dangerouslySetInnerHTML={{
@@ -92,7 +97,7 @@ export default function RootLayout({
               window.dataLayer = window.dataLayer || [];
               function gtag(){dataLayer.push(arguments);}
               gtag('js', new Date());
-              gtag('config', 'G-W71W8KSGT4');
+              gtag('config', '${GA_ID}');
             `,
           }}
         />
@@ -107,6 +112,7 @@ export default function RootLayout({
           <main className="flex-1">{children}</main>
           <Footer />
           <WhatsAppButton />
+          <WhatsAppClickTracker />
         </LanguageProvider>
       </body>
     </html>
